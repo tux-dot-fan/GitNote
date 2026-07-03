@@ -26,7 +26,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y asciidoctor tree
-        gem install jekyll
+        gem install jekyll minima jekyll-asciidoc jekyll-avatar jekyll-mentions jekyll-gist jekyll-jupyter-notebook jemoji webrick
 
     - name: Build Jekyll site
       run: |
@@ -49,9 +49,9 @@ jobs:
           for file in $(find ../vulkan_html/ -name "*.html"); do mv -- "$file" "${file%.html}.md"; done
         fi
 
-        # Build jekyll - Notes is the source
+        # Build jekyll - use BUNDLE_GEMFILE=none to ignore Gemfile
         cd "$ROOT"
-        JEKYLL_ENV=production jekyll build --source "$ROOT/Notes" --destination "$ROOT/Notes/_site"
+        BUNDLE_GEMFILE='' JEKYLL_ENV=production jekyll build --source "$ROOT/Notes" --destination "$ROOT/Notes/_site"
         ls "$ROOT/Notes/_site/" | head -5
 
     - name: GitHub Pages
