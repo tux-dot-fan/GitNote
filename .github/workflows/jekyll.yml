@@ -30,14 +30,16 @@ jobs:
 
     - name: Build Jekyll site
       run: |
+        set -x
         rm -rf .git
-
-        # Copy config to Notes so jekyll can find it
-        cp _config.yml Notes/_config.yml
+        ROOT=${{ github.workspace }}
+        
+        # Copy config to Notes so jekyll finds it
+        cp "$ROOT/_config.yml" "$ROOT/Notes/_config.yml"
 
         # Process asciidoc for vulkan notes
-        if [ -d "Notes/004-3d-rendering/vulkan/" ]; then
-          cd Notes/004-3d-rendering/vulkan/
+        if [ -d "$ROOT/Notes/004-3d-rendering/vulkan/" ]; then
+          cd "$ROOT/Notes/004-3d-rendering/vulkan/"
           asciidoctor -a toc=right -n -s -e -R ./ -D ../vulkan_html/ $(find . -name "*.adoc") || true
           cp -r chapters/images ../vulkan_html/chapters/ || true
           cp -r chapters/extensions/images ../vulkan_html/chapters/extensions/ || true
@@ -45,11 +47,12 @@ jobs:
           cp chapters/index.md ../vulkan_html/chapters/ || true
           cp chapters/extensions/index.md ../vulkan_html/chapters/extensions/ || true
           for file in $(find ../vulkan_html/ -name "*.html"); do mv -- "$file" "${file%.html}.md"; done
-          cd ../..
         fi
 
-        # Build jekyll from Notes directory
-        JEKYLL_ENV=production jekyll build --source Notes --destination Notes/_site
+        # Build jekyll - Notes is the source
+        cd "$ROOT"
+        JEKYLL_ENV=production jekyll build --source "$ROOT/Notes" --destination "$ROOT/Notes/_site"
+        ls "$ROOT/Notes/_site/" | head -5
 
     - name: GitHub Pages
       env:
