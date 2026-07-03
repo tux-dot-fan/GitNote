@@ -16,15 +16,22 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+
     - name: Install dependencies
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y asciidoctor tree
+        gem install jekyll bundler github-pages
 
-    - name: Build the site
+    - name: Build Jekyll site
       run: |
         rm -rf ${{ github.workspace }}/.git || true
 
+        # Process asciidoc for vulkan notes
         if [ -d "Notes/004-3d-rendering/vulkan/" ]; then
           cd Notes/004-3d-rendering/vulkan/
           asciidoctor -a toc=right -n -s -e -R ./ -D ../vulkan_html/ $(find . -name "*.adoc") || true
@@ -37,13 +44,13 @@ jobs:
           cd ../..
         fi
 
-        tree
+        # Build jekyll
+        JEKYLL_ENV=production bundle exec jekyll build --future
 
     - name: GitHub Pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: crazy-max/ghaction-github-pages@v2.6.0
       with:
-        domain: github.com
         target_branch: ghp1
-        build_dir: .
+        build_dir: _site
