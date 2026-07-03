@@ -30,11 +30,14 @@ jobs:
 
     - name: Build Jekyll site
       run: |
-        set -x
         rm -rf .git
         ROOT=${{ github.workspace }}
         
-        # Copy config to Notes so jekyll finds it
+        # Move Gemfile out of the way so jekyll doesn't use bundler
+        mv "$ROOT/Gemfile" "$ROOT/Gemfile.bak"
+        mv "$ROOT/Gemfile.lock" "$ROOT/Gemfile.lock.bak" 2>/dev/null || true
+
+        # Copy config to Notes
         cp "$ROOT/_config.yml" "$ROOT/Notes/_config.yml"
 
         # Process asciidoc for vulkan notes
@@ -49,9 +52,9 @@ jobs:
           for file in $(find ../vulkan_html/ -name "*.html"); do mv -- "$file" "${file%.html}.md"; done
         fi
 
-        # Build jekyll - use BUNDLE_GEMFILE=none to ignore Gemfile
+        # Build jekyll
         cd "$ROOT"
-        BUNDLE_GEMFILE='' JEKYLL_ENV=production jekyll build --source "$ROOT/Notes" --destination "$ROOT/Notes/_site"
+        JEKYLL_ENV=production jekyll build --source "$ROOT/Notes" --destination "$ROOT/Notes/_site"
         ls "$ROOT/Notes/_site/" | head -5
 
     - name: GitHub Pages
