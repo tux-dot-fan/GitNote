@@ -27,11 +27,13 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -y asciidoctor tree
         gem install jekyll
-        rm -f Gemfile.lock
 
     - name: Build Jekyll site
       run: |
-        rm -rf ${{ github.workspace }}/.git || true
+        rm -rf .git
+
+        # Copy config to Notes so jekyll can find it
+        cp _config.yml Notes/_config.yml
 
         # Process asciidoc for vulkan notes
         if [ -d "Notes/004-3d-rendering/vulkan/" ]; then
@@ -46,8 +48,8 @@ jobs:
           cd ../..
         fi
 
-        # Build jekyll
-        JEKYLL_ENV=production bundle exec jekyll build || JEKYLL_ENV=production jekyll build
+        # Build jekyll from Notes directory
+        JEKYLL_ENV=production jekyll build --source Notes --destination Notes/_site
 
     - name: GitHub Pages
       env:
@@ -55,4 +57,4 @@ jobs:
       uses: crazy-max/ghaction-github-pages@v2.6.0
       with:
         target_branch: ghp1
-        build_dir: _site
+        build_dir: Notes/_site
