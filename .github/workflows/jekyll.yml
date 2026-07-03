@@ -38,7 +38,7 @@ jobs:
 
     - name: GitHub Pages
       env:
-        GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: crazy-max/ghaction-github-pages@v2.6.0
       with:
         domain: github.com
