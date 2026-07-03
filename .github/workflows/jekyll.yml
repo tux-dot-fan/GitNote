@@ -27,6 +27,7 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -y asciidoctor tree
         gem install jekyll
+        rm -f Gemfile.lock
 
     - name: Build Jekyll site
       run: |
@@ -45,8 +46,8 @@ jobs:
           cd ../..
         fi
 
-        # Build jekyll from root, output to _site
-        JEKYLL_ENV=production jekyll build --source . --destination ./_site
+        # Build jekyll
+        JEKYLL_ENV=production bundle exec jekyll build || JEKYLL_ENV=production jekyll build
 
     - name: GitHub Pages
       env:
