@@ -45,8 +45,8 @@ jobs:
           cd ../..
         fi
 
-        # Build jekyll
-        JEKYLL_ENV=production bundle exec jekyll build || JEKYLL_ENV=production jekyll build
+        # Build jekyll from root, output to _site
+        JEKYLL_ENV=production jekyll build --source . --destination ./_site
 
     - name: GitHub Pages
       env:
