@@ -20,12 +20,13 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.2'
+        bundler: 'latest'
 
     - name: Install dependencies
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y asciidoctor tree
-        gem install jekyll bundler github-pages
+        gem install jekyll
 
     - name: Build Jekyll site
       run: |
@@ -45,7 +46,7 @@ jobs:
         fi
 
         # Build jekyll
-        JEKYLL_ENV=production bundle exec jekyll build --future
+        JEKYLL_ENV=production bundle exec jekyll build || JEKYLL_ENV=production jekyll build
 
     - name: GitHub Pages
       env:
