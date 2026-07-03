@@ -1,0 +1,372 @@
+<h1 id="my-pretrain-history">my pretrain history</h1>
+
+<h1 id="pretrain">pretrain</h1>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.py:2134] 2024-10-02 22:46:14,378 &gt;&gt; ***** Running training *****
+[INFO|trainer.py:2135] 2024-10-02 22:46:14,378 &gt;&gt;   Num examples = 16,527,707
+[INFO|trainer.py:2136] 2024-10-02 22:46:14,378 &gt;&gt;   Num Epochs = 3
+[INFO|trainer.py:2137] 2024-10-02 22:46:14,378 &gt;&gt;   Instantaneous batch size per device = 8
+[INFO|trainer.py:2140] 2024-10-02 22:46:14,378 &gt;&gt;   Total train batch size (w. parallel, distributed &amp; accumulation) = 8
+[INFO|trainer.py:2141] 2024-10-02 22:46:14,378 &gt;&gt;   Gradient Accumulation steps = 1
+[INFO|trainer.py:2142] 2024-10-02 22:46:14,378 &gt;&gt;   Total optimization steps = 6,197,892
+[INFO|trainer.py:2143] 2024-10-02 22:46:14,380 &gt;&gt;   Number of trainable parameters = 1,235,814,400
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>per_device_train_batch_size: 1  
+gradient_accumulation_steps: 8  
+learning_rate: 1.0e-4  
+num_train_epochs: 3.0  
+lr_scheduler_type: cosine  
+warmup_ratio: 0.1  
+bf16: true
+</code></pre></div></div>
+
+<p>16,527,707 * 3 /8 = 6,197,892</p>
+
+<p>25gb</p>
+
+<p>py:2134] 2024-10-04 08:58:31,915 » <strong>*** Running training **</strong>*
+[INFO|trainer.py:2135] 2024-10-04 08:58:31,915 »   Num examples = 826,279
+[INFO|trainer.py:2136] 2024-10-04 08:58:31,915 »   Num Epochs = 3
+[INFO|trainer.py:2137] 2024-10-04 08:58:31,915 »   Instantaneous batch size per device = 1
+[INFO|trainer.py:2140] 2024-10-04 08:58:31,915 »   Total train batch size (w. parallel, distributed &amp; accumulation) = 8
+[INFO|trainer.py:2141] 2024-10-04 08:58:31,915 »   Gradient Accumulation steps = 8
+[INFO|trainer.py:2142] 2024-10-04 08:58:31,915 »   Total optimization steps = 309,852
+[INFO|trainer.py:2143] 2024-10-04 08:58:31,916 »   Number of trainable parameters = 1,235,814,400</p>
+
+<h2 id="输出格式">输出格式</h2>
+
+<p><img src="assets/Pasted%20image%2020241008123149.png" alt="" /></p>
+
+<h2 id="训练资源占用">训练资源占用</h2>
+
+<h3 id="100m-模型-v100">100M 模型/ V100</h3>
+
+<p>V100是15 TFLOPS FP32算力。</p>
+<ol>
+  <li>当cutoff_len为1时，算力没有跑满，内存瓶颈。</li>
+  <li>当cutoff_len为8192时，算力应该差不多跑满了。此时算力为6<em>（参数量）</em> token数 * 2.34(speed) = 11T。接近15T.(没有用到Tensor Core，seq_len太多，在attention引入了更多计算)</li>
+  <li>当cutoff_len为1024，gradient_accumulation_steps=8时，理论上速度与上一条相同，但实际慢了一些，可能是因为多了7轮内存访问。</li>
+  <li>当cutoff_len为1024, batch_size为8时，因为seq_length小，计算量小了些的缘故。按6 * 100 * 1024 * 8 * 3.3 = 16T，比15T大一些。</li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>task</th>
+      <th>fp16</th>
+      <th>speed</th>
+      <th>num_gpu</th>
+      <th>batch size per gpu</th>
+      <th>gradient_accumulation_steps</th>
+      <th>cutoff_len</th>
+      <th>gpu memory usage(GB)</th>
+      <th>memory bandwidth</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.9 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>2.579</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.7 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>64</td>
+      <td>2.617</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.4 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>128</td>
+      <td>2.729</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.4 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>256</td>
+      <td>2.951</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.4 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>512</td>
+      <td>3.183</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>12.3it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1024</td>
+      <td>4.5</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>9.03 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>2048</td>
+      <td>6.583</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>5 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>4096</td>
+      <td>9.647</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>2.34 it/s</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>8192</td>
+      <td>18.067</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>==pretrain==</td>
+      <td>==true==</td>
+      <td>==12.3it/s==</td>
+      <td>==1==</td>
+      <td>==1==</td>
+      <td>==1==</td>
+      <td>==1024==</td>
+      <td>==4.5==</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>==pretrain==</td>
+      <td>==true==</td>
+      <td>==1.82it/s==</td>
+      <td>==1==</td>
+      <td>==1==</td>
+      <td>==8==</td>
+      <td>==1024==</td>
+      <td>==4.529==</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>==pretrain==</td>
+      <td>==true==</td>
+      <td>==1.2s/it==</td>
+      <td>==1==</td>
+      <td>==1==</td>
+      <td>==16==</td>
+      <td>==1024==</td>
+      <td>==4.529==</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>2.26 it/s</td>
+      <td>1</td>
+      <td><strong>12</strong></td>
+      <td>1</td>
+      <td>1024</td>
+      <td>26.353</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><strong>pretrain</strong></td>
+      <td><strong>true</strong></td>
+      <td><strong>3.3it/s</strong></td>
+      <td><strong>1</strong></td>
+      <td><strong>8</strong></td>
+      <td><strong>1</strong></td>
+      <td><strong>1024</strong></td>
+      <td><strong>18.8</strong></td>
+      <td><strong>70%</strong></td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>2.5s/it</td>
+      <td>1</td>
+      <td>8</td>
+      <td><strong>8</strong></td>
+      <td>1024</td>
+      <td>18.0</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>pretrain</td>
+      <td>true</td>
+      <td>4.8s/it</td>
+      <td>1</td>
+      <td>8</td>
+      <td><strong>16</strong></td>
+      <td>1024</td>
+      <td>18.0</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>A100:</p>
+
+<ol>
+  <li>Training with DataParallel so batch size has been adjusted to: 8, 所以没法把batch size设成16或32，通过修改gradient_accumulation_steps来提高并行度，没有走作用。</li>
+  <li>计算算力是：6 * 100 * 1024 * 8 * 6.99 = 34 TFLOPS，A100的fp engine是19.5 FLOPS，是不够的，主要用的是tensor core。</li>
+  <li>看起来是内存瓶颈了，50%的内存带宽是1TB/s，1s计算的token数是1024 * 8 * 6.99 = 57,000个， 平均一个token访存17.5GB。这和memory usage是对得上的。但这个内存占用是1024 * 8才用到的，并不应该每个token都用到所有其他的token相关的内存。反向传播的内存访存是非常大的？怎么算？</li>
+  <li>对于较小的模型来讲，gradient_accumulation_steps应该设置为1 ，设大的主要作的是减少权重更新次数？但小模型权重更新写内存本来就不多。</li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>task</th>
+      <th>fp16</th>
+      <th>speed</th>
+      <th>num_gpu</th>
+      <th>batch size per gpu</th>
+      <th>gradient_accumulation_steps</th>
+      <th>cutoff_len</th>
+      <th>gpu memory usage(GB)</th>
+      <th>memory bandwidth</th>
+      <th>tensor core</th>
+      <th>fp engine</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>pretrain</strong></td>
+      <td><strong>true</strong></td>
+      <td>6.99 it/s</td>
+      <td><strong>1</strong></td>
+      <td><strong>8</strong></td>
+      <td><strong>1</strong></td>
+      <td><strong>1024</strong></td>
+      <td><strong>18.8</strong></td>
+      <td>50%</td>
+      <td>12.9%</td>
+      <td>3%</td>
+    </tr>
+    <tr>
+      <td><strong>pretrain</strong></td>
+      <td><strong>true</strong></td>
+      <td>1.21 s/it</td>
+      <td><strong>1</strong></td>
+      <td><strong>8</strong></td>
+      <td><strong>8</strong></td>
+      <td><strong>1024</strong></td>
+      <td><strong>18.8</strong></td>
+      <td>50%</td>
+      <td>12.9%</td>
+      <td>3%</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="1b-模型-v100-6">1B 模型/ V100 *6</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>num_gpu</th>
+      <th>batch size per gpu</th>
+      <th>gradient_accumulation_steps</th>
+      <th>cutoff_len</th>
+      <th>gpu memory usage(GB)</th>
+      <th>算力</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6</td>
+      <td>16</td>
+      <td>1</td>
+      <td>1024</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="1b-模型-a100">1B 模型/ A100</h3>
+
+<p>| task     | speed(s/it) | num_gpu | batch size per gpu | gradient_accumulation_steps | cutoff_len | gpu memory usage(GB) | memory bandwidth | fp32 | fp32算力(TFLOPS) |
+| ——– | ———– | ——- | —————— | ————————— | ———- | ——————– | —————- | —- | ————– |
+| pretrain | 8.9         | 1       | 16                 | 1                           | 1024       | 42.73                | 10%(200GB/s)     | 90%  | 17.6           |
+|          |             |         |                    |                             |            |                      |                  |      |                |
+|          |             |         |                    |                             |            |                      |                  |      |                |
+forward算力：2.4GFLOPS * 16 * 1024 = 38.4 TFLOPS(约需2s)，如果gradient_accumulation_steps设成8,那就是19s左右。</p>

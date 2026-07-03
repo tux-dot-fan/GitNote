@@ -1,0 +1,17 @@
+<h1 id="安装vcpkg">安装vcpkg</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/Microsoft/vcpkg.git
+./vcpkg/bootstrap-vcpkg.sh
+</code></pre></div></div>
+
+<h1 id="安装包">安装包</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./vcpkg <span class="nb">install </span>cpp-httplib
+</code></pre></div></div>
+
+<h1 id="创建包">创建包</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vcpkg create handycpp https://github.com/zhangfuwen/handycpp
+vcpkg edit handycpp <span class="c"># and then edit</span>
+vcpkg <span class="nb">install </span>handycpp
+</code></pre></div></div>

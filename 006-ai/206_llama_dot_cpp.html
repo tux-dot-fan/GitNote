@@ -1,0 +1,134 @@
+<h2 id="running-on-pc">Running on PC</h2>
+
+<h2 id="compiling">Compiling</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">sudo </span>apt <span class="nb">install </span>git ninja-build cmake
+
+git clone https://github.com/ggerganov/llama.cpp
+
+<span class="nb">cd </span>llama.cpp
+cmake <span class="nt">-B</span> build <span class="nt">-G</span> Ninja
+ninja <span class="nt">-C</span> build
+<span class="nb">cd</span> -
+</code></pre></div></div>
+
+<pre><code class="language-note">## Compiling for Android(NDK)
+
+cmake -B build -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=29 -DCMAKE_TOOLCHAIN_FILE=/home/xxx/android-ndk-r25c/build/cmake/android.toolchain.cmake  -G Ninja
+ninja -C build
+
+</code></pre>
+
+<h2 id="downloading-model-weights">Downloading Model Weights</h2>
+
+<p>获取llama模型权重文件：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="o">!</span> <span class="nb">command</span> <span class="nt">-v</span> pip3<span class="p">;</span> <span class="k">then
+  </span><span class="nb">sudo </span>apt <span class="nb">install </span>python3 python3-pip
+<span class="k">if
+</span>pip <span class="nb">install </span>transformers <span class="c"># 这个是pyllama的运行时依赖，pyllama可能没写。不安装这个会造成运行时失败</span>
+pip <span class="nb">install </span>pyllama <span class="nt">-U</span>
+python <span class="nt">-m</span> llama.download <span class="nt">--model_size</span> 7B
+
+</code></pre></div></div>
+<p>model_size可选值：7B,13B,30B,65B。其中7B模型大概14GB以内，13B模型26GB左右，依些类推，乘以2就行了。
+运行时需要把模型完全加载到内存或显存才能工作。
+可以通过量化的方式把模型降到原来的四分之一大小。</p>
+
+<p>下载完的目录结构：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>✅ pyllama_data/tokenizer.model
+✅ pyllama_data/tokenizer_checklist.chk
+✅ pyllama_data/7B/consolidated.00.pth
+✅ pyllama_data/7B/params.json
+✅ pyllama_data/7B/checklist.chk
+</code></pre></div></div>
+
+<p>模型权重文件是有格式的，这种方式下载到的是pytorch格式的，需要传换成ggml格式才能用：</p>
+
+<h2 id="pytorch-to-ggml-format-conversion">Pytorch to ggml format conversion</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 ./llama.cpp/convert-pth-to-ggml.py ./pyllama_data/7B 1
+</code></pre></div></div>
+
+<h2 id="quantization">Quantization</h2>
+
+<p>成生的文件是16位浮点数的，整体size比较大，可以量化为int4的：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./llamma.cpp/build/bin/quantize ./pyllama_data/7B/ggml-model-f16.bin ./pyllama_data/7B/ggml-model-q4_0.bin 2
+</code></pre></div></div>
+
+<h2 id="running-with-parameters">Running with parameters</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./llama.cpp/build/bin/main <span class="nt">-m</span> ./pyllama_data/7B/ggml-model-q4_0.bin <span class="nt">-t</span> 4 <span class="nt">-n</span> 128 <span class="nt">--color</span> <span class="nt">-i</span> <span class="nt">-r</span> <span class="s2">"User:"</span>
+</code></pre></div></div>
+
+<h2 id="other-backends">Other backends</h2>
+
+<h3 id="using-clblast-or-cublas-as-backends">Using CLBlast or cuBlas as backends</h3>
+
+<p>llama.cpp可以使用CLBlast或cuBlas做为后端运行。使用cuBlas可以直接运行在GPU上。</p>
+
+<p>cuBlas:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">cd </span>llama.cpp
+<span class="nb">rm</span> <span class="nt">-rf</span> build
+cmake <span class="nt">-B</span> build <span class="nt">-G</span> Ninja <span class="nt">-DLLAMA_CUBLAS</span><span class="o">=</span>ON
+ninja <span class="nt">-C</span> build
+<span class="nb">cd</span> -
+
+</code></pre></div></div>
+
+<p>clBlast:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">cd </span>llama.cpp
+<span class="nb">rm</span> <span class="nt">-rf</span> build
+cmake <span class="nt">-B</span> build <span class="nt">-G</span> Ninja <span class="nt">-DLLAMA_CLBLAST</span><span class="o">=</span>ON <span class="c"># -DCLBlast_dir=/some/path</span>
+ninja <span class="nt">-C</span> build
+<span class="nb">cd</span> -
+
+</code></pre></div></div>
+
+<p>运行时需要加上<code class="language-plaintext highlighter-rouge">--gpu-layers</code>参数。</p>
+
+<p>opencl的话，可以用环境变量指定设备和平台</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nv">GGML_OPENCL_PLATFORM</span><span class="o">=</span>1 ./main ...
+<span class="nv">GGML_OPENCL_DEVICE</span><span class="o">=</span>2 ./main ...
+<span class="nv">GGML_OPENCL_PLATFORM</span><span class="o">=</span>Intel ./main ...
+<span class="nv">GGML_OPENCL_PLATFORM</span><span class="o">=</span>AMD <span class="nv">GGML_OPENCL_DEVICE</span><span class="o">=</span>1 ./main ...
+</code></pre></div></div>
+
+<h3 id="get-othermodels">Get OtherModels</h3>
+
+<h2 id="linly">Linly</h2>
+
+<p>这个git repo上分享是一个tencent pretrain格式的模型：
+https://huggingface.co/Linly-AI/ChatFlow-7B</p>
+
+<p>转换为llama格式后可以直接用。</p>
+
+<h3 id="downloading-tencent-model-weights">Downloading tencent model weights</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git lfs <span class="nb">install
+</span>git clone https://huggingface.co/Linly-AI/ChatFlow-7B
+git clone https://github.com/ProjectD-AI/llama_inference
+</code></pre></div></div>
+
+<h3 id="converting-to-pytorch-format">Converting to pytorch format</h3>
+
+<p>从tencent pretrain转换为pytorch格式：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://github.com/Tencent/TencentPretrain
+
+<span class="nb">mv </span>pyllama_data/7B/consolidated.00.pth<span class="o">{</span>,.back-original<span class="o">}</span> <span class="c"># 备分，将新生成的文件放到pyllama文件夹下</span>
+
+python3 TencentPretrain/scripts/convert_tencentpretrain_to_llama.py <span class="nt">--input_model_path</span> ChatFlow-7B/chatflow_7b.bin <span class="se">\</span>
+                                                    <span class="nt">--output_model_path</span> pyllama_data/7B/consolidated.00.pth <span class="se">\</span>
+                                                    <span class="nt">--layers</span> 32
+
+</code></pre></div></div>

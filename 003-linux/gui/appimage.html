@@ -1,0 +1,12 @@
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="o">[[</span> <span class="o">!</span> <span class="nt">-d</span> build <span class="o">]]</span> <span class="o">&amp;&amp;</span> <span class="nb">mkdir </span>build
+<span class="nb">cd </span>build
+cmake .. <span class="nt">-DCMAKE_INSTALL_PREFIX</span><span class="o">=</span>/usr <span class="nt">-G</span> <span class="s2">"Ninja"</span>
+ninja
+<span class="nv">DESTDIR</span><span class="o">=</span>AppDir ninja <span class="nb">install
+</span>wget https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20220822-1/linuxdeploy-x86_64.AppImage
+<span class="nb">chmod</span> +x ./linuxdeploy-x86_64.AppImage
+./linuxdeploy-x86_64.AppImage <span class="nt">--appdir</span> ./AppDir <span class="nt">--output</span> appimage <span class="c"># -o FunTerm.AppImage</span>
+<span class="nb">rm</span> ./linuxdeploy-x86_64.AppImage
+</code></pre></div></div>

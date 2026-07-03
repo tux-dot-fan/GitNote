@@ -1,0 +1,14 @@
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">cd</span> ~/Code
+<span class="nb">mkdir </span>gnome-sushi
+<span class="nb">cd </span>gnome-sushi
+<span class="nb">sudo </span>apt <span class="nb">source </span>gnome-sushi
+<span class="nb">sudo chown</span> <span class="nt">-R</span> zhangfuwen:zhangfuwen ./<span class="k">*</span>
+<span class="nb">cd </span>gnome-sushi
+<span class="c"># modify javascript source code</span>
+meson <span class="nt">--prefix</span> /usr build
+<span class="nb">cd </span>build 
+ninja
+<span class="nb">sudo </span>ninja <span class="nb">install</span>
+
+</code></pre></div></div>

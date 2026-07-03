@@ -1,0 +1,282 @@
+<h1 id="dpkg-and-apt">dpkg and apt</h1>
+
+<h1 id="change-log">change log</h1>
+
+<p>要用debchange来生成changelog</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>devscripts
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>debchange <span class="s2">"initial commit"</span>
+</code></pre></div></div>
+
+<h1 id="反向查找依赖该包的其他包">反向查找依赖该包的其他包</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if </span>dpkg <span class="nt">-s</span> apt-rdepends <span class="o">&gt;</span> /dev/null 2&gt;&amp;1<span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span>  <span class="s2">"apt-rdepends already exists"</span>
+<span class="k">else
+  </span><span class="nb">sudo </span>apt <span class="nb">install </span>apt-rdepends
+<span class="k">fi
+
+</span>apt-rdepends <span class="nt">-r</span> qtcreator
+</code></pre></div></div>
+
+<h1 id="查看当前包依赖的包">查看当前包依赖的包</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dpkg <span class="nt">-s</span> qtcreator
+</code></pre></div></div>
+
+<h1 id="列出已安装的包">列出已安装的包</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nt">--installed</span> list
+</code></pre></div></div>
+
+<h1 id="查找哪些包里安装了这个命令">查找哪些包里安装了这个命令</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-file find ntpdate
+</code></pre></div></div>
+
+<h1 id="查看某包安装的文件">查看某包安装的文件</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-file list ntpdate
+</code></pre></div></div>
+
+<h2 id="dpkg-and-apt-1">dpkg and apt</h2>
+
+<h3 id="基础操作">基础操作</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt update <span class="c"># 更新元数据</span>
+apt <span class="nb">install </span>xfce4-terminal <span class="c"># 安装</span>
+apt remove xfce4-terminal <span class="c"># 删除</span>
+apt upgrade <span class="c"># 升级软件包</span>
+apt reinstall xfce4-terminal
+apt reinstall ~/Downloads/search_xxx.deb
+apt <span class="nb">source </span>xfce4-terminal <span class="c"># 下载源代码</span>
+dpkg <span class="nt">-s</span> apt-rdepends <span class="c"># 查询某package是否已安装</span>
+apt <span class="nt">--installed</span> list <span class="c"># 列出所有已安装的包</span>
+2.5.2 依赖查询
+2.5.2.1 被依赖查询
+<span class="k">if </span>dpkg <span class="nt">-s</span> apt-rdepends <span class="o">&gt;</span> /dev/null 2&gt;&amp;1<span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span>  <span class="s2">"apt-rdepends already exists"</span>
+<span class="k">else
+  </span><span class="nb">sudo </span>apt <span class="nb">install </span>apt-rdepends
+<span class="k">fi
+
+</span>apt-rdepends <span class="nt">-r</span> gedit        
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+gedit
+  Reverse Depends: biosyntax-gedit <span class="o">(</span>1.0.0b-2<span class="o">)</span>
+  Reverse Depends: cinnamon-desktop-environment <span class="o">(</span>5.2.2<span class="o">)</span>
+  Reverse Depends: gedit-dev <span class="o">(&lt;&lt;</span> <span class="no">41</span><span class="sh">.0-3)
+  Reverse Depends: gedit-latex-plugin (&gt;= 3.20.0-2)
+  Reverse Depends: gedit-plugin-bookmarks (&lt;&lt; 41.0-1)
+  Reverse Depends: gedit-plugin-bracket-completion (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-character-map (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-code-comment (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-color-picker (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-color-schemer (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-commander (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-draw-spaces (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-find-in-files (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-git (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-join-lines (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-multi-edit (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-session-saver (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-smart-spaces (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-synctex (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-terminal (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-text-size (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-translate (&gt;= 41.0-1)
+  Reverse Depends: gedit-plugin-word-completion (&gt;= 41.0-1)
+  Reverse Depends: gedit-source-code-browser-plugin (&gt;= 3.0.3-6)
+  Reverse Depends: gnome-core (&gt;= 1:42+3)
+  Reverse Depends: rabbitvcs-gedit (0.18-3)
+  Reverse Depends: supercollider-gedit (&gt;= 1:3.11.2+repack-1build1)
+  Reverse Depends: task-gnome-flashback-desktop (3.68ubuntu2)
+  Reverse Depends: ubuntu-unity-desktop (0.4)
+biosyntax-gedit
+  Reverse Depends: biosyntax (1.0.0b-2)
+biosyntax
+cinnamon-desktop-environment
+  Reverse Depends: task-cinnamon-desktop (3.68ubuntu2)
+task-cinnamon-desktop
+gedit-dev
+gedit-latex-plugin
+gedit-plugin-bookmarks
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugins
+gedit-plugin-bracket-completion
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-character-map
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-code-comment
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-color-picker
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-color-schemer
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-commander
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-draw-spaces
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-find-in-files
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-git
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-join-lines
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-multi-edit
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-session-saver
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-smart-spaces
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-synctex
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-terminal
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-text-size
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-translate
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-plugin-word-completion
+  Reverse Depends: gedit-plugins (41.0-1)
+gedit-source-code-browser-plugin
+gnome-core
+  Reverse Depends: gnome (= 1:42+3)
+  Reverse Depends: task-gnome-desktop (3.68ubuntu2)
+gnome
+task-gnome-desktop
+rabbitvcs-gedit
+supercollider-gedit
+task-gnome-flashback-desktop
+ubuntu-unity-desktop
+</span></code></pre></div></div>
+
+<h4 id="依赖查询">依赖查询</h4>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> apt depends gedit
+gedit
+  依赖: gedit-common (&lt;&lt; 42)
+  依赖: gedit-common (&gt;= 41)
+  依赖: gir1.2-glib-2.0
+  依赖: gir1.2-gtk-3.0 (&gt;= 3.22)
+  依赖: gir1.2-gtksource-4
+  依赖: gir1.2-pango-1.0
+  依赖: gir1.2-peas-1.0
+  依赖: gsettings-desktop-schemas
+  依赖: iso-codes
+  依赖: python3-gi (&gt;= 3.0)
+  依赖: python3-gi-cairo (&gt;= 3.0)
+  依赖: &lt;python3:any&gt;
+    python3:i386
+    python3
+  依赖: python3.10
+  依赖: libatk1.0-0 (&gt;= 1.12.4)
+  依赖: libc6 (&gt;= 2.34)
+  依赖: libcairo2 (&gt;= 1.2.4)
+  依赖: libgdk-pixbuf-2.0-0 (&gt;= 2.22.0)
+  依赖: libgirepository-1.0-1 (&gt;= 0.9.3)
+  依赖: libglib2.0-0 (&gt;= 2.64)
+  依赖: libgspell-1-2 (&gt;= 1.8.2)
+  依赖: libgtk-3-0 (&gt;= 3.22)
+  依赖: libgtksourceview-4-0 (&gt;= 3.18.0)
+  依赖: libpango-1.0-0 (&gt;= 1.42.0)
+  依赖: libpeas-1.0-0 (&gt;= 1.14.1)
+  依赖: libxml2 (&gt;= 2.7.4)
+  推荐: yelp
+  推荐: zenity
+  建议: gedit-plugins
+
+  
+</code></pre></div></div>
+
+<h3 id="探索一个package">探索一个package</h3>
+<h4 id="remote-package-描述信息">remote package 描述信息</h4>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  ~ apt show search
+ apt show gedit
+Package: gedit
+Version: 41.0-3
+Priority: optional
+Section: gnome
+Origin: Ubuntu
+Maintainer: Ubuntu Developers &lt;ubuntu-devel-discuss@lists.ubuntu.com&gt;
+Original-Maintainer: Debian GNOME Maintainers &lt;pkg-gnome-maintainers@lists.alioth.debian.org&gt;
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 1,827 kB
+Depends: gedit-common (&lt;&lt; 42), gedit-common (&gt;= 41), gir1.2-glib-2.0, gir1.2-gtk-3.0 (&gt;= 3.22), gir1.2-gtksource-4, gir1.2-pango-1.0, gir1.2-peas-1.0, gsettings-desktop-schemas, iso-codes, python3-gi (&gt;= 3.0), python3-gi-cairo (&gt;= 3.0), python3:any, python3.10, libatk1.0-0 (&gt;= 1.12.4), libc6 (&gt;= 2.34), libcairo2 (&gt;= 1.2.4), libgdk-pixbuf-2.0-0 (&gt;= 2.22.0), libgirepository-1.0-1 (&gt;= 0.9.3), libglib2.0-0 (&gt;= 2.64), libgspell-1-2 (&gt;= 1.8.2), libgtk-3-0 (&gt;= 3.22), libgtksourceview-4-0 (&gt;= 3.18.0), libpango-1.0-0 (&gt;= 1.42.0), libpeas-1.0-0 (&gt;= 1.14.1), libxml2 (&gt;= 2.7.4)
+Recommends: yelp, zenity
+Suggests: gedit-plugins
+Homepage: https://wiki.gnome.org/Apps/Gedit
+Task: ubuntu-desktop-minimal, ubuntu-desktop, ubuntu-budgie-desktop, ubuntu-budgie-desktop-raspi
+Download-Size: 434 kB
+APT-Manual-Installed: yes
+APT-Sources: http://cn.archive.ubuntu.com/ubuntu jammy/main amd64 Packages
+Description: GNOME 桌面环境的官方文本编辑器
+ gedit 是一个文本编辑器，支持大多数标准编辑器的功能，同时还包含有一些在其 他普通文本编辑器中没有的功能。gedit
+ 是一个图形界面的程序，支持在一个窗口 内编辑多个文本文件(有时被称为标签或 MDI)。
+ .
+ gedit 使用 Unicode 的 UTF-8 来编码文件，故能够支持各种国际语言的文本。
+ 它的核心功能包括支持源代码的语法高亮、自动缩进和打印及打印预览支持。
+ .
+ gedit 可以通过它的插件系统来扩展功能，目前包括支持拼写检查、文件比较、查看 CVS 更新日志以及调整缩进层次。
+</code></pre></div></div>
+
+<h4 id="installed-package所含文件">installed package所含文件：</h4>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dpkg-query -L gedit | head
+/.
+/usr
+/usr/bin
+/usr/bin/gedit
+/usr/lib
+/usr/lib/python3
+/usr/lib/python3/dist-packages
+/usr/lib/python3/dist-packages/gi
+/usr/lib/python3/dist-packages/gi/overrides
+/usr/lib/python3/dist-packages/gi/overrides/Gedit.py
+</code></pre></div></div>
+
+<h4 id="deb包所含文件">deb包所含文件</h4>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dpkg-deb --contents ~/Downloads/python3-multibootusb_9.2.0-1_all.deb | head
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/bin/
+-rwxr-xr-x root/root      7513 2018-04-05 01:14 ./usr/bin/multibootusb
+-rwxr-xr-x root/root       614 2017-10-25 02:43 ./usr/bin/multibootusb-pkexec
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/lib/
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/lib/python3/
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/lib/python3/dist-packages/
+-rw-r--r-- root/root       437 2018-04-05 01:14 ./usr/lib/python3/dist-packages/multibootusb-9.2.0.egg-info
+drwxr-xr-x root/root         0 2018-04-05 01:14 ./usr/lib/python3/dist-packages/scripts/
+
+</code></pre></div></div>
+
+<h4 id="remote-package所含文件">remote package所含文件</h4>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  ~ apt --installed list | grep xfce4-terminal
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+➜  ~ apt-file list xfce4-terminal | head       
+xfce4-terminal: /usr/bin/xfce4-terminal
+xfce4-terminal: /usr/bin/xfce4-terminal.wrapper
+xfce4-terminal: /usr/share/applications/xfce4-terminal-settings.desktop
+xfce4-terminal: /usr/share/applications/xfce4-terminal.desktop
+xfce4-terminal: /usr/share/doc/xfce4-terminal/AUTHORS
+xfce4-terminal: /usr/share/doc/xfce4-terminal/HACKING
+xfce4-terminal: /usr/share/doc/xfce4-terminal/NEWS.Debian.gz
+xfce4-terminal: /usr/share/doc/xfce4-terminal/NEWS.gz
+xfce4-terminal: /usr/share/doc/xfce4-terminal/README.Debian
+xfce4-terminal: /usr/share/doc/xfce4-terminal/README.md
+</code></pre></div></div>
+
+<h2 id="文件属于哪个package">文件属于哪个package</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dpkg-query --search /usr/bin/grub-file
+grub-common: /usr/bin/grub-file
+</code></pre></div></div>

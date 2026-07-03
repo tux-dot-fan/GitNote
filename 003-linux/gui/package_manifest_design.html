@@ -1,0 +1,66 @@
+<h1 id="pwa-progressive-web-app-的清单文件">PWA (progressive web app) 的清单文件</h1>
+
+<p>The manifest file can have any name, but is commonly named <code class="language-plaintext highlighter-rouge">manifest.json</code> and served from the root (your website’s top-level directory). The specification suggests the extension should be <code class="language-plaintext highlighter-rouge">.webmanifest</code>, but browsers also support .json extensions, which may be easier for developers to understand.</p>
+
+<p>可以看见包整体有name, icon, description，每个快捷方式也有自己的name, icon, description。</p>
+
+<p>另外，还有screenshot, 用于兜售这个应用的界面。</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"short_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Weather"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Weather: Do I need an umbrella?"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"icons"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/icons-vector.svg"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/svg+xml"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"512x512"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/icons-192.png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"192x192"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/icons-512.png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"512x512"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/?source=pwa"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"start_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/?source=pwa"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"background_color"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#3367D6"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"standalone"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"theme_color"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#3367D6"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"shortcuts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"How's weather today?"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"short_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Today"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"View weather information for today"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/today?source=pwa"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"icons"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/today.png"</span><span class="p">,</span><span class="w"> </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"192x192"</span><span class="w"> </span><span class="p">}]</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"How's weather tomorrow?"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"short_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Tomorrow"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"View weather information for tomorrow"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/tomorrow?source=pwa"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"icons"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/tomorrow.png"</span><span class="p">,</span><span class="w"> </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"192x192"</span><span class="w"> </span><span class="p">}]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Weather forecast information"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"screenshots"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/screenshot1.png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"540x720"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/images/screenshot2.jpg"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/jpg"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"540x720"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>

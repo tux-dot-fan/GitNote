@@ -1,0 +1,80 @@
+<h1 id="基本思路">基本思路</h1>
+
+<p>我觉得可以称之为<code class="language-plaintext highlighter-rouge">安放算法</code>.</p>
+
+<p>快排的第一步操作是分区partition，但其实分区的基本方法是<code class="language-plaintext highlighter-rouge">安放</code>.
+随机选一个数，把它安放到它应有的位置。</p>
+
+<p>比如说数为9 8 7 6 5 4 3 2 1</p>
+
+<p>我随机选一个数，比如说6，那它的位置一定是放在第5位。我怎么才能把一个选择的数(pivot)放到应有的位置呢？
+方法就是便历一次所有的数，把比他小的放在它前面，把比它大的放在它后面。</p>
+
+<p>结果就是：</p>
+
+<p>[任意顺序 5 4 3 2 1] <strong>6</strong> [任意顺序 6 7 8 9]</p>
+
+<p>这里涉及两个问题，一个是随机的数怎么选，最简单的办法是选第0个数，也可以选中间的数，可能选中间的数更好一些。
+如果选的是中间的数，我们要把它和第0个数交换下位置，这样问题又变成了选择第0个数做为pivot的算法了。</p>
+
+<p>第二个问题是怎么安放，一个简单的办法是引入第一个数据，然后遍历第一个数组，把比arr[pivot]小的数先放进去，然后放pivot，然后放比它大的数。</p>
+
+<p>这样浪费了一点点空间，其实问题也不大。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">partition</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">tmp</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">pivot</span> <span class="o">=</span> <span class="n">left</span><span class="p">;</span>
+    <span class="c1">// enqueue smaller numbers</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">left</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+       <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">pivot</span><span class="p">])</span>  <span class="p">{</span>
+           <span class="n">tmp</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+       <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="c1">// enqueue pivot</span>
+    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+    <span class="n">tmp</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">pivot</span><span class="p">]);</span>
+    <span class="c1">// enqueue large numbers</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">left</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+       <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">pivot</span><span class="p">])</span>  <span class="p">{</span>
+           <span class="n">tmp</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+       <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>经过partition之后，数组被分成两部分，左右两部分都是未排序的状态，我们就可以采用分治了：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">mysort</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kt">int</span> <span class="n">pivot</span> <span class="o">=</span> <span class="n">partition</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">);</span>
+    <span class="n">mysort</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">mysort</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">right</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">mysort</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">arr</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="partition算法的优化">partition算法的优化</h1>
+
+<p>partition的第一个写法超级低效，其实完全可以原地实现<code class="language-plaintext highlighter-rouge">安放</code>的，而且有多种方法.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">partition</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">pivot</span> <span class="o">=</span> <span class="n">left</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// room for next smaller number</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">index</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">right</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">pivot</span><span class="p">])</span> <span class="p">{</span> <span class="c1">// found a smaller number</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span> <span class="c1">// 把小数放前面去，index位置原来的不知道是什么的数换后面去</span>
+            <span class="c1">// 这里i一定是大于等于index的，所以i一定在index后面</span>
+            <span class="n">index</span><span class="o">++</span><span class="p">;</span> <span class="c1">// index指向下一个被牺牲用于存放小数的位置</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>

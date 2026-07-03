@@ -1,0 +1,64 @@
+<h1 id="qualcomm-dsp">qualcomm dsp</h1>
+
+<p>SDK position:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  adsp_proc git:<span class="o">(</span>master<span class="o">)</span> <span class="nb">ls</span> ~/Qualcomm/
+HelloWorld  Hexagon_SDK
+
+</code></pre></div></div>
+
+<p>dsps</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The processing units include a Kryo CPU, an Adreno 640, and four separate DSPs, each devoted to a specific application space: sensor (sDSP), modem (mDSP), audio (aDSP), and compute (cDSP).
+</code></pre></div></div>
+
+<p>所以我们的目标是CDSP, compute DSP</p>
+
+<p>tools</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  3.5.4 <span class="nb">cd </span>tools
+➜  tools <span class="nb">ls
+</span>android-ndk-r19c  audio  debug  elfsigner  HALIDE_Tools  hexagon_ide  HEXAGON_Tools  Installer_logs  libusb  python_venv  qaic  utils
+➜  tools <span class="nb">cd</span>
+
+
+➜  8.3.07 <span class="nb">ls
+</span>Documents  Examples  NOTICE.txt  RELEASE_NOTES.txt  Tools  Uninstall_Qualcomm_Hexagon_LLVM_Tools
+➜  8.3.07 <span class="nb">pwd</span>
+/home/xxx/Qualcomm/Hexagon_SDK/3.5.4/tools/HEXAGON_Tools/8.3.07
+
+</code></pre></div></div>
+
+<p>Hexagon apps are started from an app running on the apps processor
+of the SoC. A RPC mechanism (called FastRPC) is used to load a shared library
+on the DSP and the RPC stubs are generated from a IDL complier (qaic). The
+RTOS on the DSP is QuRT but is often abstraced by the DSPAL APIs.</p>
+
+<p>/system/vendor/lib/libadsprpc.so</p>
+
+<p>(or)</p>
+
+<p>/vendor/lib/libadsprpc.so</p>
+
+<p>Shared object library that needs to be linked with the user space vendor application invoking the remote procedure call. This library interfaces with the kernel driver to initiate the remote invocation to aDSP</p>
+
+<p>/system/vendor/lib/libcdsprpc.so</p>
+
+<p>(or)</p>
+
+<p>/vendor/lib/libcdsprpc.so</p>
+
+<p>Shared object library that needs to be linked with the user space vendor application invoking the remote procedure call. This library interfaces with the kernel driver to initiate the remote invocation to cDSP</p>
+
+<p>/system/lib/libadsprpc_system.so</p>
+
+<p>Shared object library that needs to be linked with the user space system application invoking the remote procedure call. This library interfaces with the kernel driver to initiate the remote invocation to aDSP This is applicable only for Android P system applications</p>
+
+<p>/system/lib/libcdsprpc_system.so</p>
+
+<p>Shared object library that needs to be linked with the user space system application invoking the remote procedure call. This library interfaces with the kernel driver to initiate the remote invocation to cDSP This is applicable only for Android P system applications</p>
+
+<p><img src="assets/img.png" alt="img.png" /></p>
+
+<p>Error: Error : Emulation hexagonv5 is deprecated in this version of the toolchain</p>
+
+<p>https://zhuanlan.zhihu.com/p/429890621</p>

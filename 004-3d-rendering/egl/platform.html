@@ -1,0 +1,1049 @@
+<h1 id="platform">platform</h1>
+
+<p>-D platforms=…
+List the platforms (window systems) to support. Its argument is a comma separated string such as -D platforms=x11,wayland. It decides the platforms a driver may support. The first listed platform is also used by the main library to decide the native platform.</p>
+
+<p>The available platforms are <code class="language-plaintext highlighter-rouge">x11</code>, <code class="language-plaintext highlighter-rouge">wayland</code>, <code class="language-plaintext highlighter-rouge">android</code>, and <code class="language-plaintext highlighter-rouge">haiku</code>. The android platform can either be built as a system component, part of AOSP, using Android.mk files, or cross-compiled using appropriate options. Unless for special needs, the build system should select the right platforms automatically.</p>
+
+<p><code class="language-plaintext highlighter-rouge">EGL_PLATFORM</code></p>
+
+<p>This variable specifies the native platform. The valid values are the same as those for <code class="language-plaintext highlighter-rouge">-D platforms=....</code> When the variable is not set, the main library uses the first platform listed in -D platforms=… as the native platform.</p>
+
+<p>Extensions like <code class="language-plaintext highlighter-rouge">EGL_MESA_drm_display</code> define new functions to create displays for non-native platforms. These extensions are usually used by applications that support non-native platforms. Setting this variable is probably required only for some of the demos found in mesa/demo repository.</p>
+
+<h1 id="other-platforms">other platforms</h1>
+
+<p><a href="https://registry.khronos.org/EGL/extensions/MESA/EGL_MESA_platform_surfaceless.txt">EGL_PLATFORM=surfaceless</a></p>
+
+<p><a href="https://registry.khronos.org/EGL/extensions/MESA/EGL_MESA_platform_gbm.txt">EGL_PLATFORM=gbm</a></p>
+
+<h2 id="surfaceless">surfaceless</h2>
+
+<h2 id="gbm">gbm</h2>
+
+<p>platform为gbm时，可以创建window surface，用于交换。</p>
+
+<p>创建的window surface对应一个GBM surface（<code class="language-plaintext highlighter-rouge">gbm_surface_create</code>）.</p>
+
+<p>GBM(Generic Buffer Management) API是建立在DRM上的一个缓冲区管理api。</p>
+
+<blockquote>
+  <p><a href="https://wayland-book.com/introduction/high-level-design.html">wayland book</a>: 
+the GBM (Generic Buffer Management) library — an abstraction on top of libdrm for allocating buffers on the GPU.</p>
+</blockquote>
+
+<p><a href="https://en.m.wikipedia.org/wiki/Mesa_(computer_graphics)">mesa wiki</a>
+At XDC2014, Nvidia employee Andy Ritger proposed to enhance EGL in order to replace GBM.[102] This was not taken positively by the community, and Nvidia eventually changed their mind,[103] and took another approach.</p>
+
+<p><a href="https://github.com/robclark/libgbm/blob/master/gbm.h">gbm api 列表</a></p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span>
+<span class="nf">gbm_device_get_fd</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">);</span>
+
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span>
+<span class="nf">gbm_device_get_backend_name</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="nf">gbm_device_is_format_supported</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">,</span>
+                               <span class="kt">uint32_t</span> <span class="n">format</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">usage</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">gbm_device_destroy</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">);</span>
+
+<span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span>
+<span class="nf">gbm_create_device</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">);</span>
+
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span>
+<span class="nf">gbm_bo_create</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">,</span>
+              <span class="kt">uint32_t</span> <span class="n">width</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">height</span><span class="p">,</span>
+              <span class="kt">uint32_t</span> <span class="n">format</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">);</span>
+
+<span class="cp">#define GBM_BO_IMPORT_WL_BUFFER         0x5501
+#define GBM_BO_IMPORT_EGL_IMAGE         0x5502
+</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span>
+<span class="nf">gbm_bo_import</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">type</span><span class="p">,</span>
+              <span class="kt">void</span> <span class="o">*</span><span class="n">buffer</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">usage</span><span class="p">);</span>
+
+<span class="kt">uint32_t</span>
+<span class="nf">gbm_bo_get_width</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">uint32_t</span>
+<span class="nf">gbm_bo_get_height</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">uint32_t</span>
+<span class="nf">gbm_bo_get_stride</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">uint32_t</span>
+<span class="nf">gbm_bo_get_format</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span>
+<span class="nf">gbm_bo_get_device</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="k">union</span> <span class="n">gbm_bo_handle</span>
+<span class="nf">gbm_bo_get_handle</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="nf">gbm_bo_write</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">gbm_bo_set_user_data</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+		     <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">destroy_user_data</span><span class="p">)(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">));</span>
+
+<span class="kt">void</span> <span class="o">*</span>
+<span class="nf">gbm_bo_get_user_data</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">gbm_bo_destroy</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span>
+<span class="nf">gbm_surface_create</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">,</span>
+                   <span class="kt">uint32_t</span> <span class="n">width</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">height</span><span class="p">,</span>
+		   <span class="kt">uint32_t</span> <span class="n">format</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">);</span>
+
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span>
+<span class="nf">gbm_surface_lock_front_buffer</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">surface</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">gbm_surface_release_buffer</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">surface</span><span class="p">,</span> <span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="nf">gbm_surface_has_free_buffers</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">surface</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">gbm_surface_destroy</span><span class="p">(</span><span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">surface</span><span class="p">);</span>
+</code></pre></div></div>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />问题：gbm_surface_create创建的surface是对应/dev/fb还是什么，eglSwapBuffers的时候是送显还是离屏？
+  gbm_surface创建的是只一个交换链+ surface format，是离屏的。要送显需要lock_front然后通过drm送给drm_fb。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />问题：gbm_surface_create调用的是drm的什么函数？
+  不同的gbm back end应该不一样。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />问题: drm与KMS是啥关系？
+  KMS是DRM的一部分，DRM除了KMS还包含缓冲区管理和master/slave的Auth.</li>
+</ul>
+
+<h1 id="drm">DRM</h1>
+
+<p>DRM, direct render manager, 本来是应X Server的DRI需求而开发的。后来X没落了，但DRM仍然很活跃。</p>
+
+<p>DRM主要包括三部分：（1）Auth，即谁有权使用设备，谁是master, (2) GEM，即buffer object管理, (3) KMS，即送显及显示器的配置。</p>
+
+<p>DRM分用户态和内核态两部分。</p>
+
+<p><img src="assets/drm_architecture.png" alt="drm-architecture" /></p>
+
+<p><img src="assets/libdrm_functions.png" alt="drm functions" /></p>
+
+<pre><code class="language-note">原文链接里有代码，可以打开看看。
+
+KMS：CRTC，ENCODER，CONNECTOR，PLANE，FB，VBLANK，property
+GEM：DUMB、PRIME、fence
+
+DUMB	只支持连续物理内存，基于kernel中通用CMA API实现，多用于小分辨率简单场景
+PRIME	连续、非连续物理内存都支持，基于DMA-BUF机制，可以实现buffer共享，多用于大内存复杂场景
+fence	buffer同步机制，基于内核dma_fence机制实现，用于防止显示内容出现异步问题
+————————————————
+版权声明：本文为CSDN博主「何小龙」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/hexiaolong2009/article/details/83720940
+</code></pre>
+
+<h2 id="缓冲区管理">缓冲区管理</h2>
+
+<p><a href="https://01.org/linuxgraphics/gfx-docs/drm/drm-memory-management.html">这个文档</a>里列举了所有缓冲区管理相关的kernel API。</p>
+
+<p>缓冲区或者说显存的管理，主要是分配、释放、进程间共享和同步。</p>
+
+<p>GEM是一个比较差的设计，它通过一个32位的name和一个32位的handle来代表一个缓冲区。由于32位数据是可以穷举的，所以带来一些安全问题。</p>
+
+<p>比GEM更优的方案是DMA_buf。</p>
+
+<p>DMA_buf不光用来支持显卡驱动，也用来支持V4L2等，使用比较普遍。</p>
+
+<p>PRIME使用DMA_buf来在进程间共享缓冲区。为了与GEM相互转换，新提出了两个DRM API。</p>
+
+<h2 id="drm-kms-与显示">DRM-KMS 与显示</h2>
+
+<p><a href="assets/brezillon-drm-kms.pdf">参考PDF</a></p>
+
+<p>这一块主要讲内核和硬件部分，下面是一些摘要。</p>
+
+<h3 id="概述">概述</h3>
+
+<p>送显有三个途径: (1) fbdev framebfufer, (2) drm framebuffer, (3) v4l2</p>
+
+<p>KMS是DRM的一个sub part，主要处理送显。KMS是fbdev alternative。</p>
+
+<p>显卡的设备文件分为三部分：
+/dev/dri/renderX （仅渲染和非特权ioctrl）
+/dev/dri/controlDX (暂时是<a href="https://mjmwired.net/kernel/Documentation/gpu/drm-uapi.rst">无用节点</a>，可能将来也不会有用)
+/dev/dri/cardX (传统设备节点，支持所有功能)</p>
+
+<p>渲染节点无需特权，仅支持PRIME DMA_buf buffer object的申请，不支持GEM。
+cardX节点支持GEN和送显。</p>
+
+<h3 id="ion-和-dma_buf">ION 和 DMA_buf</h3>
+
+<p>DMA_buf可以理解为上层的封送结构，它本身不提供分配缓冲的方法。真正的缓冲区来源于ION、CMA等分配器。</p>
+
+<h3 id="关于prime-dumb的命名">关于PRIME， DUMB的命名</h3>
+
+<p>https://blog.csdn.net/hexiaolong2009/article/details/105961192</p>
+
+<p>PRIME最初用于nVidia的GPU offloading，所以GPU offloading就是集成显卡合成送显、独立显示渲染。这样两个显卡分工合作，可以在不切换显示的情况下，提高游戏性能。
+具体参考：https://airlied.livejournal.com/71734.html</p>
+
+<h3 id="kms-vs-fbdev">kms vs fbdev</h3>
+
+<p><img src="assets/kms-fbdev.png" alt="kms-fbdev" /></p>
+
+<h3 id="drm-framebuffer">drm framebuffer</h3>
+
+<p><img src="assets/drm_framebuffer.png" alt="drm-framebuffer" /></p>
+
+<h3 id="crtc-display-timing">crtc display timing</h3>
+
+<p><img src="assets/crtc_display_timing.png" alt="timing1" /></p>
+
+<p><img src="assets/crtc_display_timing2.png.png" alt="timing2" /></p>
+
+<h3 id="page-flip">page flip</h3>
+
+<p><img src="assets/page_flip.png" alt="page flip" /></p>
+
+<h3 id="planes">planes</h3>
+
+<p><img src="assets/planes.png" alt="planes" /></p>
+
+<p><img src="assets/plane_framebuffer.png" alt="plane framebuffer" /></p>
+
+<h2 id="代码">代码</h2>
+
+<h3 id="通过render-node离屏渲染">通过render node离屏渲染</h3>
+
+<h4 id="通过gbm-compute">通过gbm compute</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;EGL/egl.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;EGL/eglext.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;GLES3/gl31.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;assert.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;gbm.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdbool.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span> 
+<span class="cm">/* a dummy compute shader that does nothing */</span>
+<span class="cp">#define COMPUTE_SHADER_SRC "          \
+#version 310 es\n                                                       \
+                                                                        \
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;       \
+                                                                        \
+void main(void) {                                                       \
+   </span><span class="cm">/* awesome compute code here */</span><span class="cp">                                      \
+}                                                                       \
+"
+</span> 
+<span class="kt">int32_t</span>
+<span class="nf">main</span> <span class="p">(</span><span class="kt">int32_t</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">*</span> <span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+   <span class="kt">bool</span> <span class="n">res</span><span class="p">;</span>
+ 
+   <span class="kt">int32_t</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span> <span class="p">(</span><span class="s">"/dev/dri/renderD128"</span><span class="p">,</span> <span class="n">O_RDWR</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+ 
+   <span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span> <span class="o">=</span> <span class="n">gbm_create_device</span> <span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">gbm</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+ 
+   <span class="cm">/* setup EGL from the GBM device */</span>
+   <span class="n">EGLDisplay</span> <span class="n">egl_dpy</span> <span class="o">=</span> <span class="n">eglGetPlatformDisplay</span> <span class="p">(</span><span class="n">EGL_PLATFORM_GBM_MESA</span><span class="p">,</span> <span class="n">gbm</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">egl_dpy</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+ 
+   <span class="n">res</span> <span class="o">=</span> <span class="n">eglInitialize</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">res</span><span class="p">);</span>
+ 
+   <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">egl_extension_st</span> <span class="o">=</span> <span class="n">eglQueryString</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span> <span class="n">EGL_EXTENSIONS</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">strstr</span> <span class="p">(</span><span class="n">egl_extension_st</span><span class="p">,</span> <span class="s">"EGL_KHR_create_context"</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">strstr</span> <span class="p">(</span><span class="n">egl_extension_st</span><span class="p">,</span> <span class="s">"EGL_KHR_surfaceless_context"</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+ 
+   <span class="k">static</span> <span class="k">const</span> <span class="n">EGLint</span> <span class="n">config_attribs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="n">EGL_RENDERABLE_TYPE</span><span class="p">,</span> <span class="n">EGL_OPENGL_ES3_BIT_KHR</span><span class="p">,</span>
+      <span class="n">EGL_NONE</span>
+   <span class="p">};</span>
+   <span class="n">EGLConfig</span> <span class="n">cfg</span><span class="p">;</span>
+   <span class="n">EGLint</span> <span class="n">count</span><span class="p">;</span>
+ 
+   <span class="n">res</span> <span class="o">=</span> <span class="n">eglChooseConfig</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span> <span class="n">config_attribs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cfg</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">count</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">res</span><span class="p">);</span>
+ 
+   <span class="n">res</span> <span class="o">=</span> <span class="n">eglBindAPI</span> <span class="p">(</span><span class="n">EGL_OPENGL_ES_API</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">res</span><span class="p">);</span>
+ 
+   <span class="k">static</span> <span class="k">const</span> <span class="n">EGLint</span> <span class="n">attribs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="n">EGL_CONTEXT_CLIENT_VERSION</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="n">EGL_NONE</span>
+   <span class="p">};</span>
+   <span class="n">EGLContext</span> <span class="n">core_ctx</span> <span class="o">=</span> <span class="n">eglCreateContext</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span>
+                                           <span class="n">cfg</span><span class="p">,</span>
+                                           <span class="n">EGL_NO_CONTEXT</span><span class="p">,</span>
+                                           <span class="n">attribs</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">core_ctx</span> <span class="o">!=</span> <span class="n">EGL_NO_CONTEXT</span><span class="p">);</span>
+ 
+   <span class="n">res</span> <span class="o">=</span> <span class="n">eglMakeCurrent</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span> <span class="n">EGL_NO_SURFACE</span><span class="p">,</span> <span class="n">EGL_NO_SURFACE</span><span class="p">,</span> <span class="n">core_ctx</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">res</span><span class="p">);</span>
+ 
+   <span class="cm">/* setup a compute shader */</span>
+   <span class="n">GLuint</span> <span class="n">compute_shader</span> <span class="o">=</span> <span class="n">glCreateShader</span> <span class="p">(</span><span class="n">GL_COMPUTE_SHADER</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">shader_source</span> <span class="o">=</span> <span class="n">COMPUTE_SHADER_SRC</span><span class="p">;</span>
+   <span class="n">glShaderSource</span> <span class="p">(</span><span class="n">compute_shader</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">shader_source</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="n">glCompileShader</span> <span class="p">(</span><span class="n">compute_shader</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="n">GLuint</span> <span class="n">shader_program</span> <span class="o">=</span> <span class="n">glCreateProgram</span> <span class="p">();</span>
+ 
+   <span class="n">glAttachShader</span> <span class="p">(</span><span class="n">shader_program</span><span class="p">,</span> <span class="n">compute_shader</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="n">glLinkProgram</span> <span class="p">(</span><span class="n">shader_program</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="n">glDeleteShader</span> <span class="p">(</span><span class="n">compute_shader</span><span class="p">);</span>
+ 
+   <span class="n">glUseProgram</span> <span class="p">(</span><span class="n">shader_program</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="cm">/* dispatch computation */</span>
+   <span class="n">glDispatchCompute</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+   <span class="n">assert</span> <span class="p">(</span><span class="n">glGetError</span> <span class="p">()</span> <span class="o">==</span> <span class="n">GL_NO_ERROR</span><span class="p">);</span>
+ 
+   <span class="n">printf</span> <span class="p">(</span><span class="s">"Compute shader dispatched and finished successfully</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+ 
+   <span class="cm">/* free stuff */</span>
+   <span class="n">glDeleteProgram</span> <span class="p">(</span><span class="n">shader_program</span><span class="p">);</span>
+   <span class="n">eglDestroyContext</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">,</span> <span class="n">core_ctx</span><span class="p">);</span>
+   <span class="n">eglTerminate</span> <span class="p">(</span><span class="n">egl_dpy</span><span class="p">);</span>
+   <span class="n">gbm_device_destroy</span> <span class="p">(</span><span class="n">gbm</span><span class="p">);</span>
+   <span class="n">close</span> <span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+ 
+   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>代码编译：<code class="language-plaintext highlighter-rouge">gcc main.c </code>pkg-config –libs –cflags egl gbm gl`</p>
+
+<h3 id="渲染到gbm_surface">渲染到gbm_surface</h3>
+
+<p>下面这段代码渲染到一个gbm_surface，gbm_surface本身没有关联一个窗口系统，所以它本质上只是一个交换链。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+    <span class="c1">// This example program creates an EGL surface from a GBM surface.</span>
+    <span class="c1">//</span>
+    <span class="c1">// If the macro EGL_MESA_platform_gbm is defined, then the program</span>
+    <span class="c1">// creates the surfaces using the methods defined in this specification.</span>
+    <span class="c1">// Otherwise, it uses the methods defined by the EGL 1.4 specification.</span>
+    <span class="c1">//</span>
+    <span class="c1">// Compile with `cc -std=c99 example.c -lgbm -lEGL`.</span>
+
+    <span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span>    <span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span>
+    <span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
+</span>    <span class="cp">#include</span> <span class="cpf">&lt;sys/stat.h&gt;</span><span class="cp">
+</span>    <span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span>
+    <span class="cp">#include</span> <span class="cpf">&lt;EGL/egl.h&gt;</span><span class="cp">
+</span>    <span class="cp">#include</span> <span class="cpf">&lt;gbm.h&gt;</span><span class="cp">
+</span>
+    <span class="k">struct</span> <span class="nc">my_display</span> <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span><span class="p">;</span>
+        <span class="n">EGLDisplay</span> <span class="n">egl</span><span class="p">;</span>
+    <span class="p">};</span>
+
+    <span class="k">struct</span> <span class="nc">my_config</span> <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">my_display</span> <span class="n">dpy</span><span class="p">;</span>
+        <span class="n">EGLConfig</span> <span class="n">egl</span><span class="p">;</span>
+    <span class="p">};</span>
+
+    <span class="k">struct</span> <span class="nc">my_window</span> <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">my_config</span> <span class="n">config</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">gbm</span><span class="p">;</span>
+        <span class="n">EGLSurface</span> <span class="n">egl</span><span class="p">;</span>
+    <span class="p">};</span>
+
+    <span class="k">static</span> <span class="kt">void</span>
+    <span class="nf">check_extensions</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="cp">#ifdef EGL_MESA_platform_gbm
+</span>        <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">client_extensions</span> <span class="o">=</span> <span class="n">eglQueryString</span><span class="p">(</span><span class="n">EGL_NO_DISPLAY</span><span class="p">,</span> <span class="n">EGL_EXTENSIONS</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">client_extensions</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// EGL_EXT_client_extensions is unsupported.</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">strstr</span><span class="p">(</span><span class="n">client_extensions</span><span class="p">,</span> <span class="s">"EGL_MESA_platform_gbm"</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="cp">#endif
+</span>    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">struct</span> <span class="nc">my_display</span>
+    <span class="nf">get_display</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">my_display</span> <span class="n">dpy</span><span class="p">;</span>
+
+        <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"/dev/dri/card0"</span><span class="p">,</span> <span class="n">O_RDWR</span> <span class="o">|</span> <span class="n">FD_CLOEXEC</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="n">dpy</span><span class="p">.</span><span class="n">gbm</span> <span class="o">=</span> <span class="n">gbm_create_device</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">dpy</span><span class="p">.</span><span class="n">gbm</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+
+    <span class="cp">#ifdef EGL_MESA_platform_gbm
+</span>        <span class="n">dpy</span><span class="p">.</span><span class="n">egl</span> <span class="o">=</span> <span class="n">eglGetPlatformDisplayEXT</span><span class="p">(</span><span class="n">EGL_PLATFORM_GBM_MESA</span><span class="p">,</span> <span class="n">dpy</span><span class="p">.</span><span class="n">gbm</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+    <span class="cp">#else
+</span>        <span class="n">dpy</span><span class="p">.</span><span class="n">egl</span> <span class="o">=</span> <span class="n">eglGetDisplay</span><span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">gbm</span><span class="p">);</span>
+    <span class="cp">#endif
+</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span> <span class="o">==</span> <span class="n">EGL_NO_DISPLAY</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="n">EGLint</span> <span class="n">major</span><span class="p">,</span> <span class="n">minor</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">eglInitialize</span><span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">major</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">minor</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">dpy</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">struct</span> <span class="nc">my_config</span>
+    <span class="nf">get_config</span><span class="p">(</span><span class="k">struct</span> <span class="nc">my_display</span> <span class="n">dpy</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">my_config</span> <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">.</span><span class="n">dpy</span> <span class="o">=</span> <span class="n">dpy</span><span class="p">,</span>
+        <span class="p">};</span>
+
+        <span class="n">EGLint</span> <span class="n">egl_config_attribs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">EGL_BUFFER_SIZE</span><span class="p">,</span>        <span class="mi">32</span><span class="p">,</span>
+            <span class="n">EGL_DEPTH_SIZE</span><span class="p">,</span>         <span class="n">EGL_DONT_CARE</span><span class="p">,</span>
+            <span class="n">EGL_STENCIL_SIZE</span><span class="p">,</span>       <span class="n">EGL_DONT_CARE</span><span class="p">,</span>
+            <span class="n">EGL_RENDERABLE_TYPE</span><span class="p">,</span>    <span class="n">EGL_OPENGL_ES2_BIT</span><span class="p">,</span>
+            <span class="n">EGL_SURFACE_TYPE</span><span class="p">,</span>       <span class="n">EGL_WINDOW_BIT</span><span class="p">,</span>
+            <span class="n">EGL_NONE</span><span class="p">,</span>
+        <span class="p">};</span>
+
+        <span class="n">EGLint</span> <span class="n">num_configs</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">eglGetConfigs</span><span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">num_configs</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="n">EGLConfig</span> <span class="o">*</span><span class="n">configs</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">num_configs</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="n">EGLConfig</span><span class="p">));</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">eglChooseConfig</span><span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span> <span class="n">egl_config_attribs</span><span class="p">,</span>
+                             <span class="n">configs</span><span class="p">,</span> <span class="n">num_configs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">num_configs</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">num_configs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="c1">// Find a config whose native visual ID is the desired GBM format.</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_configs</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">EGLint</span> <span class="n">gbm_format</span><span class="p">;</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">eglGetConfigAttrib</span><span class="p">(</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span> <span class="n">configs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                    <span class="n">EGL_NATIVE_VISUAL_ID</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">gbm_format</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">abort</span><span class="p">();</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">gbm_format</span> <span class="o">==</span> <span class="n">GBM_FORMAT_XRGB8888</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">config</span><span class="p">.</span><span class="n">egl</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+                <span class="n">free</span><span class="p">(</span><span class="n">configs</span><span class="p">);</span>
+                <span class="k">return</span> <span class="n">config</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">// Failed to find a config with matching GBM format.</span>
+        <span class="n">abort</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">struct</span> <span class="nc">my_window</span>
+    <span class="nf">get_window</span><span class="p">(</span><span class="k">struct</span> <span class="nc">my_config</span> <span class="n">config</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">struct</span> <span class="nc">my_window</span> <span class="n">window</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="p">,</span>
+        <span class="p">};</span>
+
+        <span class="n">window</span><span class="p">.</span><span class="n">gbm</span> <span class="o">=</span> <span class="n">gbm_surface_create</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">dpy</span><span class="p">.</span><span class="n">gbm</span><span class="p">,</span>
+                                        <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span>
+                                        <span class="n">GBM_FORMAT_XRGB8888</span><span class="p">,</span>
+                                        <span class="n">GBM_BO_USE_RENDERING</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">window</span><span class="p">.</span><span class="n">gbm</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+    <span class="cp">#ifdef EGL_MESA_platform_gbm
+</span>        <span class="n">window</span><span class="p">.</span><span class="n">egl</span> <span class="o">=</span> <span class="n">eglCreatePlatformWindowSurfaceEXT</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span>
+                                                       <span class="n">config</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span>
+                                                       <span class="n">window</span><span class="p">.</span><span class="n">gbm</span><span class="p">,</span>
+                                                       <span class="nb">NULL</span><span class="p">);</span>
+    <span class="cp">#else
+</span>        <span class="n">window</span><span class="p">.</span><span class="n">egl</span> <span class="o">=</span> <span class="n">eglCreateWindowSurface</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">dpy</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span>
+                                            <span class="n">config</span><span class="p">.</span><span class="n">egl</span><span class="p">,</span>
+                                            <span class="n">window</span><span class="p">.</span><span class="n">gbm</span><span class="p">,</span>
+                                            <span class="nb">NULL</span><span class="p">);</span>
+    <span class="cp">#endif
+</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">window</span><span class="p">.</span><span class="n">egl</span> <span class="o">==</span> <span class="n">EGL_NO_SURFACE</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">abort</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">window</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">int</span>
+    <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">check_extensions</span><span class="p">();</span>
+
+        <span class="k">struct</span> <span class="nc">my_display</span> <span class="n">dpy</span> <span class="o">=</span> <span class="n">get_display</span><span class="p">();</span>
+        <span class="k">struct</span> <span class="nc">my_config</span> <span class="n">config</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">(</span><span class="n">dpy</span><span class="p">);</span>
+        <span class="k">struct</span> <span class="nc">my_window</span> <span class="n">window</span> <span class="o">=</span> <span class="n">get_window</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="通过control-node送显">通过control node送显</h3>
+
+<p>送显主要是就是给drm framebuffer送一个bo。</p>
+
+<p>这个bo可以是gbm_surface交换链中的一个bo。
+送显一定要用card节点。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"/dev/dri/card0"</span><span class="p">);</span>
+<span class="n">drmModeResPtr</span> <span class="n">res</span> <span class="o">=</span> <span class="n">drmModeGetResources</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+<span class="n">drmModeConnectorPtr</span> <span class="n">connector</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">count_connectors</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">connector</span> <span class="o">=</span> <span class="n">drmModeGetConnector</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">connectors</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="c1">// find a connected connection</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">connector</span><span class="o">-&gt;</span><span class="n">connection</span> <span class="o">==</span> <span class="n">DRM_MODE_CONNECTED</span><span class="p">)</span>
+        <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">drmModeEncoderPtr</span> <span class="n">encoder</span> <span class="o">=</span> <span class="n">drmModeGetEncoder</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">connector</span><span class="o">-&gt;</span><span class="n">encoder_id</span><span class="p">);</span>
+<span class="n">drmModeCrtcPtr</span> <span class="n">crtc</span> <span class="o">=</span> <span class="n">drmModeGetCrtc</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">encoder</span><span class="o">-&gt;</span><span class="n">crtc_id</span><span class="p">);</span>
+<span class="n">drmModeFBPtr</span> <span class="n">fb</span> <span class="o">=</span> <span class="n">drmModeGetFB</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">crtc</span><span class="o">-&gt;</span><span class="n">buffer_id</span><span class="p">);</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">gbm_surface_lock_front_buffer</span><span class="p">(</span><span class="n">my_gbm_surface</span><span class="p">);</span>
+<span class="kt">uint32_t</span> <span class="n">my_fb</span><span class="p">;</span>
+<span class="n">drmModeAddFB</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">gbm_bo_get_handle</span><span class="p">(</span><span class="n">bo</span><span class="p">).</span><span class="n">u32</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">my_fb</span><span class="p">);</span>
+<span class="n">drmModeSetCrtc</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">crtc</span><span class="o">-&gt;</span><span class="n">crtc_id</span><span class="p">,</span> <span class="n">my_fb</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h2 id="示意代码">示意代码</h2>
+
+<h3 id="渲染节点渲染">渲染节点渲染</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"/dev/dri/renderD128"</span><span class="p">);</span>
+<span class="k">struct</span> <span class="nc">gbm_device</span> <span class="o">*</span><span class="n">gbm</span> <span class="o">=</span> <span class="n">gbm_create_device</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+<span class="k">struct</span> <span class="nc">gbm_surface</span> <span class="o">*</span><span class="n">gs</span> <span class="o">=</span> <span class="n">gbm_surface_create</span><span class="p">(</span><span class="n">gbm</span><span class="p">);</span>
+<span class="n">EGLDisplay</span> <span class="n">display</span> <span class="o">=</span> <span class="n">eglGetPlatformDisplayEXT</span><span class="p">(</span><span class="n">gbm</span><span class="p">);</span>
+<span class="n">EGLSurface</span> <span class="n">surface</span> <span class="o">=</span> <span class="n">eglCreatePlatformWindowSurfaceEXT</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="n">gs</span><span class="p">);</span>
+<span class="n">EGLContext</span> <span class="n">context</span> <span class="o">=</span> <span class="n">eglCreateContext</span><span class="p">(</span><span class="n">display</span><span class="p">);</span>
+<span class="n">eglMakeCurrent</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="n">surface</span><span class="p">,</span> <span class="n">surface</span><span class="p">,</span> <span class="n">context</span><span class="p">);</span>
+<span class="c1">// OpenGL Render</span>
+<span class="p">...</span>
+<span class="n">eglSwapBuffers</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="n">surface</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="送显线程送显">送显线程送显</h3>
+
+<p>注意，送显在另一个线程。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"/dev/dri/card0"</span><span class="p">);</span>
+<span class="n">drmModeResPtr</span> <span class="n">res</span> <span class="o">=</span> <span class="n">drmModeGetResources</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+<span class="n">drmModeConnectorPtr</span> <span class="n">connector</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">count_connectors</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">connector</span> <span class="o">=</span> <span class="n">drmModeGetConnector</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">connectors</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="c1">// find a connected connection</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">connector</span><span class="o">-&gt;</span><span class="n">connection</span> <span class="o">==</span> <span class="n">DRM_MODE_CONNECTED</span><span class="p">)</span>
+        <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">drmModeEncoderPtr</span> <span class="n">encoder</span> <span class="o">=</span> <span class="n">drmModeGetEncoder</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">connector</span><span class="o">-&gt;</span><span class="n">encoder_id</span><span class="p">);</span>
+<span class="n">drmModeCrtcPtr</span> <span class="n">crtc</span> <span class="o">=</span> <span class="n">drmModeGetCrtc</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">encoder</span><span class="o">-&gt;</span><span class="n">crtc_id</span><span class="p">);</span>
+<span class="n">drmModeFBPtr</span> <span class="n">fb</span> <span class="o">=</span> <span class="n">drmModeGetFB</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">crtc</span><span class="o">-&gt;</span><span class="n">buffer_id</span><span class="p">);</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">gbm_surface_lock_front_buffer</span><span class="p">(</span><span class="n">gs</span><span class="p">);</span>
+<span class="kt">uint32_t</span> <span class="n">my_fb</span><span class="p">;</span>
+<span class="n">drmModeAddFB</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">gbm_bo_get_handle</span><span class="p">(</span><span class="n">bo</span><span class="p">).</span><span class="n">u32</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">my_fb</span><span class="p">);</span>
+<span class="n">drmModeSetCrtc</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">crtc</span><span class="o">-&gt;</span><span class="n">crtc_id</span><span class="p">,</span> <span class="n">my_fb</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="跨进程送显">跨进程送显</h3>
+
+<h4 id="发送">发送</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 获得缓冲</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">gbm_surface_lock_front_buffer</span><span class="p">(</span><span class="n">gs</span><span class="p">);</span>
+<span class="c1">// 用unix local socket发送缓冲的dma-buf</span>
+<span class="k">struct</span> <span class="nc">msghdr</span> <span class="n">msg</span><span class="p">;</span>
+<span class="k">struct</span> <span class="nc">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span> <span class="o">=</span> <span class="n">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+<span class="o">*</span><span class="p">((</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">))</span> <span class="o">=</span> <span class="n">gbm_bo_get_fd</span><span class="p">(</span><span class="n">bo</span><span class="p">);</span>
+<span class="n">sendmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h4 id="接收">接收</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 接收dma-buf</span>
+<span class="k">struct</span> <span class="nc">msghdr</span> <span class="n">msg</span><span class="p">;</span>
+<span class="n">recvmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+<span class="k">struct</span> <span class="nc">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span> <span class="o">=</span> <span class="n">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+<span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="o">*</span><span class="p">((</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">));</span>
+<span class="c1">// 还原缓冲</span>
+<span class="k">struct</span> <span class="nc">gbm_import_fd_data</span> <span class="n">gbm_data</span> <span class="o">=</span> <span class="p">{.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span><span class="p">};</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">gbm_bo_import</span><span class="p">(</span><span class="n">gbm</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">gbm_data</span><span class="p">);</span>
+
+
+<span class="c1">// 然后显示</span>
+
+
+</code></pre></div></div>
+
+<h3 id="导入bo为texture">导入bo为texture</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">gbm_import_fd_data</span> <span class="n">gbm_data</span> <span class="o">=</span> <span class="p">{.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span><span class="p">};</span>
+<span class="k">struct</span> <span class="nc">gbm_bo</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">gbm_bo_import</span><span class="p">(</span><span class="n">gbm</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">gbm_data</span><span class="p">);</span>
+<span class="n">EGLImageKHR</span> <span class="n">image</span> <span class="o">=</span> <span class="n">eglCreateImageKHR</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">bo</span><span class="p">);</span>
+<span class="n">glEGLImageTargetTexture2DOES</span><span class="p">(</span><span class="n">GL_TEXTURE_2D</span><span class="p">,</span> <span class="n">image</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h2 id="代码片断">代码片断</h2>
+
+<p>以下代码复制自：<a href="https://zhuanlan.zhihu.com/p/336395524">T知乎</a></p>
+
+<p>更详细且严谨的代码请参考: <a href="https://github.com/zlgopen/awtk-linux-fb/blob/master/awtk-port/lcd_linux/lcd_linux_drm.c">GITHUB</a></p>
+
+<h3 id="打开drm设备">打开DRM设备</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* 打开设备有专门的接口：drmOpen ，但此处为方便，使用open函数 */</span>
+<span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"/dev/dri/card0"</span><span class="p">,</span> <span class="n">O_RDWR</span> <span class="o">|</span> <span class="n">O_CLOEXEC</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot open '%s': %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">node</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="检查drm的能力">检查DRM的能力</h3>
+
+<p>DRM的能力通过drmGetCap接口获取，用drm_get_cap结构描述：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/** DRM_IOCTL_GET_CAP ioctl argument type */</span>
+<span class="k">struct</span> <span class="nc">drm_get_cap</span> <span class="p">{</span>
+    <span class="n">__u64</span> <span class="n">capability</span><span class="p">;</span>
+    <span class="n">__u64</span> <span class="n">value</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">drmGetCap</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">capability</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="o">*</span><span class="n">value</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">drm_get_cap</span> <span class="n">cap</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+    <span class="n">memclear</span><span class="p">(</span><span class="n">cap</span><span class="p">);</span>
+    <span class="n">cap</span><span class="p">.</span><span class="n">capability</span> <span class="o">=</span> <span class="n">capability</span><span class="p">;</span>
+
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">drmIoctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_GET_CAP</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cap</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+
+    <span class="o">*</span><span class="n">value</span> <span class="o">=</span> <span class="n">cap</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>使用示例：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">uint64_t</span> <span class="n">has_dumb</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">drmGetCap</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_CAP_DUMB_BUFFER</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">has_dumb</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="o">!</span><span class="n">has_dumb</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"drm device '%s' does not support dumb buffers</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">node</span><span class="p">);</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">EOPNOTSUPP</span><span class="p">;</span>
+    <span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="检索resource">检索Resource</h3>
+
+<p>获取Resource具体看以下函数：</p>
+
+<p><code class="language-plaintext highlighter-rouge">drmModeResPtr drmModeGetResources(int fd)</code></p>
+
+<p>Resource结构封装：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">drm_mode_card_res</span> <span class="p">{</span>
+    <span class="n">__u64</span> <span class="n">fb_id_ptr</span><span class="p">;</span>
+    <span class="n">__u64</span> <span class="n">crtc_id_ptr</span><span class="p">;</span>
+    <span class="n">__u64</span> <span class="n">connector_id_ptr</span><span class="p">;</span>
+    <span class="n">__u64</span> <span class="n">encoder_id_ptr</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">count_fbs</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">count_crtcs</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">count_connectors</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">count_encoders</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">min_width</span><span class="p">,</span> <span class="n">max_width</span><span class="p">;</span>
+    <span class="n">__u32</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">max_height</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_drmModeRes</span> <span class="p">{</span>
+
+    <span class="kt">int</span> <span class="n">count_fbs</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">fbs</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">count_crtcs</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">crtcs</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">count_connectors</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">connectors</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">count_encoders</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">encoders</span><span class="p">;</span>
+
+    <span class="kt">uint32_t</span> <span class="n">min_width</span><span class="p">,</span> <span class="n">max_width</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">max_height</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">drmModeRes</span><span class="p">,</span> <span class="o">*</span><span class="n">drmModeResPtr</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p>使用示例：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* retrieve resources */</span>
+    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">drmModeGetResources</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">res</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot retrieve DRM resources (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">errno</span><span class="p">);</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="获取connector">获取Connector</h3>
+
+<p>_drmModeConnector描述结构：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_drmModeConnector</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">connector_id</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">encoder_id</span><span class="p">;</span> <span class="cm">/**&lt; Encoder currently connected to */</span>
+    <span class="kt">uint32_t</span> <span class="n">connector_type</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">connector_type_id</span><span class="p">;</span>
+    <span class="n">drmModeConnection</span> <span class="n">connection</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">mmWidth</span><span class="p">,</span> <span class="n">mmHeight</span><span class="p">;</span> <span class="cm">/**&lt; HxW in millimeters */</span>
+    <span class="n">drmModeSubPixel</span> <span class="n">subpixel</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">count_modes</span><span class="p">;</span>
+    <span class="n">drmModeModeInfoPtr</span> <span class="n">modes</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">count_props</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">props</span><span class="p">;</span> <span class="cm">/**&lt; List of property ids */</span>
+    <span class="kt">uint64_t</span> <span class="o">*</span><span class="n">prop_values</span><span class="p">;</span> <span class="cm">/**&lt; List of property values */</span>
+
+    <span class="kt">int</span> <span class="n">count_encoders</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">encoders</span><span class="p">;</span> <span class="cm">/**&lt; List of encoder ids */</span>
+<span class="p">}</span> <span class="n">drmModeConnector</span><span class="p">,</span> <span class="o">*</span><span class="n">drmModeConnectorPtr</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p>使用示例：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">drmModeConnector</span> <span class="o">*</span><span class="n">conn</span> <span class="o">=</span> <span class="n">drmModeGetConnector</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">connectors</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">conn</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot retrieve DRM connector %u:%u (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">res</span><span class="o">-&gt;</span><span class="n">connectors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">errno</span><span class="p">);</span>
+            <span class="k">continue</span><span class="p">;</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="encoder">Encoder</h3>
+
+<p>Encoder的结构描述：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_drmModeEncoder</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">encoder_id</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">encoder_type</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">crtc_id</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">possible_crtcs</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">possible_clones</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">drmModeEncoder</span><span class="p">,</span> <span class="o">*</span><span class="n">drmModeEncoderPtr</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p>使用示例：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="n">conn</span><span class="o">-&gt;</span><span class="n">encoder_id</span><span class="p">)</span>
+        <span class="n">drmModeEncoder</span> <span class="o">*</span><span class="n">enc</span> <span class="o">=</span> <span class="n">drmModeGetEncoder</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">conn</span><span class="o">-&gt;</span><span class="n">encoder_id</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="n">drmModeEncoderPtr</span> <span class="nf">drmModeGetEncoder</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">encoder_id</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">drm_mode_get_encoder</span> <span class="n">enc</span><span class="p">;</span>
+    <span class="n">drmModeEncoderPtr</span> <span class="n">r</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+    <span class="n">memclear</span><span class="p">(</span><span class="n">enc</span><span class="p">);</span>
+    <span class="n">enc</span><span class="p">.</span><span class="n">encoder_id</span> <span class="o">=</span> <span class="n">encoder_id</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">drmIoctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_MODE_GETENCODER</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">enc</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">r</span> <span class="o">=</span> <span class="n">drmMalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">encoder_id</span> <span class="o">=</span> <span class="n">enc</span><span class="p">.</span><span class="n">encoder_id</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">crtc_id</span> <span class="o">=</span> <span class="n">enc</span><span class="p">.</span><span class="n">crtc_id</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">encoder_type</span> <span class="o">=</span> <span class="n">enc</span><span class="p">.</span><span class="n">encoder_type</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">possible_crtcs</span> <span class="o">=</span> <span class="n">enc</span><span class="p">.</span><span class="n">possible_crtcs</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">possible_clones</span> <span class="o">=</span> <span class="n">enc</span><span class="p">.</span><span class="n">possible_clones</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">r</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="crtc">CRTC</h3>
+
+<p>CRTC结构描述：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">crtc</span> <span class="p">{</span>
+    <span class="n">drmModeCrtc</span> <span class="o">*</span><span class="n">crtc</span><span class="p">;</span>
+    <span class="n">drmModeObjectProperties</span> <span class="o">*</span><span class="n">props</span><span class="p">;</span>
+    <span class="n">drmModePropertyRes</span> <span class="o">**</span><span class="n">props_info</span><span class="p">;</span>
+    <span class="n">drmModeModeInfo</span> <span class="o">*</span><span class="n">mode</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_drmModeCrtc</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">crtc_id</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">buffer_id</span><span class="p">;</span> <span class="cm">/**&lt; FB id to connect to 0 = disconnect */</span>
+
+    <span class="kt">uint32_t</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span> <span class="cm">/**&lt; Position on the framebuffer */</span>
+    <span class="kt">uint32_t</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">mode_valid</span><span class="p">;</span>
+    <span class="n">drmModeModeInfo</span> <span class="n">mode</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="n">gamma_size</span><span class="p">;</span> <span class="cm">/**&lt; Number of gamma stops */</span>
+
+<span class="p">}</span> <span class="n">drmModeCrtc</span><span class="p">,</span> <span class="o">*</span><span class="n">drmModeCrtcPtr</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<h3 id="framebuffer">FrameBuffer</h3>
+
+<p>创建DUMB Buffer：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ret</span> <span class="o">=</span> <span class="n">drmIoctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_MODE_CREATE_DUMB</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">creq</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot create dumb buffer (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">errno</span><span class="p">);</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+    
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>添加FrameBuffer：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* create framebuffer object for the dumb-buffer */</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">drmModeAddFB</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">width</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">height</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">stride</span><span class="p">,</span>
+               <span class="n">dev</span><span class="o">-&gt;</span><span class="n">handle</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">fb</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot create framebuffer (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">errno</span><span class="p">);</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+        <span class="k">goto</span> <span class="n">err_destroy</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>准备map：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* prepare buffer for memory mapping */</span>
+    <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mreq</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">mreq</span><span class="p">));</span>
+    <span class="n">mreq</span><span class="p">.</span><span class="n">handle</span> <span class="o">=</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">handle</span><span class="p">;</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">drmIoctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_MODE_MAP_DUMB</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">mreq</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot map dumb buffer (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">errno</span><span class="p">);</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+        <span class="k">goto</span> <span class="n">err_fb</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>做map操作：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* perform actual memory mapping */</span>
+    <span class="n">dev</span><span class="o">-&gt;</span><span class="n">map</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">,</span> <span class="n">PROT_READ</span> <span class="o">|</span> <span class="n">PROT_WRITE</span><span class="p">,</span> <span class="n">MAP_SHARED</span><span class="p">,</span>
+                <span class="n">fd</span><span class="p">,</span> <span class="n">mreq</span><span class="p">.</span><span class="n">offset</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">map</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"cannot mmap dumb buffer (%d): %m</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">errno</span><span class="p">);</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+        <span class="k">goto</span> <span class="n">err_fb</span><span class="p">;</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="crtc的准备">CRTC的准备</h3>
+
+<p>准备函数：drmModeGetCrtc、drmModeSetCrtc</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">drmModeCrtcPtr</span> <span class="nf">drmModeGetCrtc</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">crtcId</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">drm_mode_crtc</span> <span class="n">crtc</span><span class="p">;</span>
+    <span class="n">drmModeCrtcPtr</span> <span class="n">r</span><span class="p">;</span>
+
+    <span class="n">memclear</span><span class="p">(</span><span class="n">crtc</span><span class="p">);</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">crtc_id</span> <span class="o">=</span> <span class="n">crtcId</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">drmIoctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_MODE_GETCRTC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">crtc</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="cm">/*
+     * return
+     */</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">r</span> <span class="o">=</span> <span class="n">drmMalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">crtc_id</span>         <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">crtc_id</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">x</span>               <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">y</span>               <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">mode_valid</span>      <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">mode_valid</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">r</span><span class="o">-&gt;</span><span class="n">mode_valid</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">memcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="o">-&gt;</span><span class="n">mode</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">crtc</span><span class="p">.</span><span class="n">mode</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="nc">drm_mode_modeinfo</span><span class="p">));</span>
+        <span class="n">r</span><span class="o">-&gt;</span><span class="n">width</span> <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">mode</span><span class="p">.</span><span class="n">hdisplay</span><span class="p">;</span>
+        <span class="n">r</span><span class="o">-&gt;</span><span class="n">height</span> <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">mode</span><span class="p">.</span><span class="n">vdisplay</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">buffer_id</span>       <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">fb_id</span><span class="p">;</span>
+    <span class="n">r</span><span class="o">-&gt;</span><span class="n">gamma_size</span>      <span class="o">=</span> <span class="n">crtc</span><span class="p">.</span><span class="n">gamma_size</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">drmModeSetCrtc</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">crtcId</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">bufferId</span><span class="p">,</span>
+           <span class="kt">uint32_t</span> <span class="n">x</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">y</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">connectors</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span>
+           <span class="n">drmModeModeInfoPtr</span> <span class="n">mode</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">drm_mode_crtc</span> <span class="n">crtc</span><span class="p">;</span>
+
+    <span class="n">memclear</span><span class="p">(</span><span class="n">crtc</span><span class="p">);</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">x</span>             <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">y</span>             <span class="o">=</span> <span class="n">y</span><span class="p">;</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">crtc_id</span>       <span class="o">=</span> <span class="n">crtcId</span><span class="p">;</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">fb_id</span>         <span class="o">=</span> <span class="n">bufferId</span><span class="p">;</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">set_connectors_ptr</span> <span class="o">=</span> <span class="n">VOID2U64</span><span class="p">(</span><span class="n">connectors</span><span class="p">);</span>
+    <span class="n">crtc</span><span class="p">.</span><span class="n">count_connectors</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mode</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">memcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">crtc</span><span class="p">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="nc">drm_mode_modeinfo</span><span class="p">));</span>
+      <span class="n">crtc</span><span class="p">.</span><span class="n">mode_valid</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nf">DRM_IOCTL</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">DRM_IOCTL_MODE_SETCRTC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">crtc</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="绘制">绘制</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">void</span> <span class="nf">modeset_draw</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">uint8_t</span> <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">r_up</span><span class="p">,</span> <span class="n">g_up</span><span class="p">,</span> <span class="n">b_up</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">off</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="nc">modeset_dev</span> <span class="o">*</span><span class="n">iter</span><span class="p">;</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mh">0xff</span><span class="p">;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mh">0xff</span><span class="p">;</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mh">0xff</span><span class="p">;</span>
+    <span class="n">r_up</span> <span class="o">=</span> <span class="n">g_up</span> <span class="o">=</span> <span class="n">b_up</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">next_color</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r_up</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="mi">20</span><span class="p">);</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">next_color</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_up</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">next_color</span><span class="p">(</span><span class="o">&amp;</span><span class="n">b_up</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">iter</span> <span class="o">=</span> <span class="n">modeset_list</span><span class="p">;</span> <span class="n">iter</span><span class="p">;</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">iter</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">iter</span><span class="o">-&gt;</span><span class="n">height</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">iter</span><span class="o">-&gt;</span><span class="n">width</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">off</span> <span class="o">=</span> <span class="n">iter</span><span class="o">-&gt;</span><span class="n">stride</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="mi">4</span><span class="p">;</span>
+                    <span class="o">*</span><span class="p">(</span><span class="kt">uint32_t</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">iter</span><span class="o">-&gt;</span><span class="n">map</span><span class="p">[</span><span class="n">off</span><span class="p">]</span> <span class="o">=</span>
+                             <span class="p">(</span><span class="n">r</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">b</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="n">usleep</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>五、总结
+以上使用示例仅为简单绘制，更详细且严谨的代码请参考：http://awtk-linux-fb/awtk-port/lcd_linux/lcd_linux_drm.c</p>
+
+<h1 id="libdrm">libdrm</h1>
+
+<p><a href="https://github.com/freedesktop/mesa-drm/tree/main">代码</a></p>
+
+<p>libdrm不光包含基础部分，还包含vendor的自定义部分，所以代码仓比较大。</p>
+
+<p>Installed Libraries: <code class="language-plaintext highlighter-rouge">libdrm_amdgpu.so</code>, <code class="language-plaintext highlighter-rouge">libdrm_intel.so</code>, <code class="language-plaintext highlighter-rouge">libdrm_nouveau.so</code>, <code class="language-plaintext highlighter-rouge">libdrm_radeon.so</code>, and <code class="language-plaintext highlighter-rouge">libdrm.so</code>
+Installed Directories: <code class="language-plaintext highlighter-rouge">/usr/include/libdrm</code> and <code class="language-plaintext highlighter-rouge">/usr/share/libdrm</code></p>
+
+<p>Short Descriptions</p>
+
+<p><code class="language-plaintext highlighter-rouge">libdrm_amdgpu.so</code>:  contains the AMDGPU specific Direct Rendering Manager functions</p>
+
+<p><code class="language-plaintext highlighter-rouge">libdrm_intel.so</code>: contains the Intel specific Direct Rendering Manager functions</p>
+
+<p><code class="language-plaintext highlighter-rouge">libdrm_nouveau.so</code>: contains the open source nVidia (Nouveau) specific Direct Rendering Manager functions</p>
+
+<p><code class="language-plaintext highlighter-rouge">libdrm_radeon.so</code>: contains the AMD Radeon specific Direct Rendering Manager functions</p>
+
+<p><code class="language-plaintext highlighter-rouge">libdrm.so</code>: contains the Direct Rendering Manager API functions</p>
+
+<h1 id="libgbm">libgbm</h1>
+
+<p><a href="https://github.com/robclark/libgbm">wayland的libgbm前端(loader)</a>
+<a href="https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gbm/main/gbm.h">mesa的libgbm前后端</a>
+<a href="https://github.com/thayama/libgbm">libgbm 带kms/drm backend</a></p>
+
+<p>libgbm代码量非常小，它的具体实现在其backend里。</p>
+
+<h1 id="egl与gbm的交互">egl与gbm的交互</h1>
+
+<p>猜测：
+egl使用gbm的公开api即可完成应用的功能：</p>
+
+<ol>
+  <li>egl使用gbm的bo创建函数即可以创建egl image</li>
+  <li>egl使用gbm的lock_front_buffer函数即可实现eglSwapbuffers</li>
+</ol>
+
+<p>但很可能是不对的，在mesa里没有找到gbm_surface_create的调用。</p>
+
+<h1 id="todo">TODO</h1>
+
+<p>https://en.wikipedia.org/wiki/Direct_Rendering_Manager#API</p>
+
+<p>Auth
+TTM
+CRTC
+Encoders
+等概念，API，调用示例代码。</p>
+
+<p>https://github.com/freelancer-leon/notes/blob/master/kernel/graphic/Linux-Graphic.md</p>
+
+<p><a href="https://www.dounaite.com/article/626b474bfce9ed0dacd981e2.html">drm和wayland</a></p>
+
+<h2 id="man-pages">man pages</h2>
+
+<p><a href="https://manpages.ubuntu.com/manpages/bionic/man7/drm-memory.7.html">drm-memory</a></p>
+
+<p><a href="https://manpages.ubuntu.com/manpages/bionic/man3/drmOpen.3.html">drmOpen</a></p>
+
+<p><a href="https://manpages.ubuntu.com/manpages/bionic/man7/drm-prime.7.html">drmPrime</a></p>
+

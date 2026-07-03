@@ -1,0 +1,486 @@
+<h2 id="推理引擎关键问题">推理引擎关键问题</h2>
+
+<ol>
+  <li>内存容量
+    <ol>
+      <li>权重
+        <ol>
+          <li>量化</li>
+          <li>蒸馏</li>
+        </ol>
+      </li>
+      <li>kv cache
+        <ol>
+          <li>缓存 sglang的radix tree</li>
+          <li>内存碎片化 paged attention</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>算力
+    <ol>
+      <li>prefill阶段是计算密集型的，核心是如何充分利用硬件资源</li>
+    </ol>
+  </li>
+  <li>内存带宽
+    <ol>
+      <li>decode阶段是访存密集型的，核心是如何加载一次权重，计算更多token</li>
+      <li>batching</li>
+      <li>预测性推理 <a href="https://www.53ai.com/news/finetuning/2024071109285.html">万字综述 10+ 种 LLM 投机采样推理加速方案 - 53AI-AI知识库|大模型知识库|大模型训练|智能体开发</a>
+        <ol>
+          <li>投机采样</li>
+          <li>多头美杜莎</li>
+          <li>LookAHead  <a href="https://github.com/hao-ai-lab/LookaheadDecoding">GitHub - hao-ai-lab/LookaheadDecoding: [ICML 2024] Break the Sequential Dependency of LLM Inference Using Lookahead Decoding</a></li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<h2 id="效果">效果</h2>
+
+<h3 id="思考更长时间">思考更长时间</h3>
+
+<p>Think Twice</p>
+
+<p><a href="https://www.alphaxiv.org/abs/2503.23803">Think Longer</a></p>
+
+<h2 id="红杉关于ai的判断">红杉关于AI的判断</h2>
+
+<ol>
+  <li>我们处于认知革命的时代，蒸汽机-&gt; 工厂流水线，通用技术专业化改造，适应特定行业的生产需求</li>
+  <li>美国有10万亿的服务业市场需要被改造</li>
+  <li>投资趋势
+    <ol>
+      <li>杠杆优于确定性</li>
+      <li>真实世界验证，在真实世界证明技术能力（如Expo在HackerOne打赢真实黑客）是新的黄金标准</li>
+      <li>AI进入物理世界</li>
+      <li>计算成为新的生产函数</li>
+    </ol>
+  </li>
+</ol>
+
+<p>红衫投资的重点方向：</p>
+
+<ol>
+  <li>持久记忆</li>
+  <li>无缝通信协议</li>
+  <li>AI语音</li>
+  <li>AI安全</li>
+  <li>开源AI</li>
+</ol>
+
+<h2 id="rust个人开发者的终极赋能和战略选择">Rust：个人开发者的终极赋能和战略选择</h2>
+
+<p>个人开发者的生存挑战：</p>
+
+<ul>
+  <li>
+    <p><strong>资源绝对稀缺</strong>：缺乏测试、QA、运维团队，一人承担所有角色。</p>
+  </li>
+  <li>
+    <p><strong>容错率极低</strong>：一个深夜难以调试的线上 <code class="language-plaintext highlighter-rouge">Segmentatiοn Fault</code> 可能导致项目失败。</p>
+  </li>
+  <li>
+    <p><strong>竞争压力巨大</strong>：必须在功能、性能或可靠性上建立独特优势，方能与大型团队产品竞争。</p>
+  </li>
+  <li>
+    <p><strong>维护成本高昂</strong>：「<strong>代码债</strong>」的利息对个人而言尤为沉重，后期修复 Bug 的时间远超开发时间。</p>
+  </li>
+  <li>
+    <p><strong>技术栈选择焦虑</strong>：选择不当的技术栈可能导致项目中途搁浅或推倒重来。</p>
+  </li>
+</ul>
+
+<p>传统的解释型语言（如 Python、JavaScript）或托管语言（如 Go、Java）在易用性上各有优势，但往往需要开发者在这些挑战上做出妥协。<strong>Rust 的出现，从根本上提供了另一种范式：它通过将复杂性前置到编译时，换取开发整个生命周期内的绝对稳定性和极致性能，从而成为个人开发者破局的最强战略武器。</strong></p>
+
+<p>对个人开发者的价值：</p>
+
+<ol>
+  <li>
+    <p><strong>竞争力优势</strong>：你一个人写的程序，可以在性能上媲美甚至超越一个团队精心优化的 C++ 程序。这是个人项目最直接的卖点。</p>
+  </li>
+  <li>
+    <p><strong>开发效率与运行效率的统一</strong>：你无需在「写得快」和「跑得快」之间做选择题。你可以同时拥有开发效率和顶级性能。</p>
+  </li>
+  <li>
+    <p><strong>成本控制</strong>：高性能意味着更低的服务器配置要求。一个用 Rust 编写的 API 网关可能单核就能处理数万请求，直接 translates to 真金白银的云服务费用节省。</p>
+  </li>
+</ol>
+
+<h4 id="卓越的工具链工业化标准的基础设施开箱即用"><strong>卓越的工具链：工业化标准的基础设施，开箱即用</strong></h4>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo new</code>：创建标准化的项目结构。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo build</code>：依赖解析和构建。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo run</code>：运行。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo test</code>：集成和单元测试（内置测试框架！）。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo clippy</code>：提供大量的代码 lint 规则，教你写出更地道、更高效的 Rust 代码。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo fmt</code>：统一的代码格式化，杜绝项目中的格式争论。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cargo doc --open</code>：自动生成极其精美的 API 文档网站，并支持文档示例代码测试。</p>
+  </li>
+  <li>
+    <p><strong>Cargo</strong>：远不止是包管理器。它是<strong>统一的项目生命周期管理工具</strong>。</p>
+  </li>
+  <li>
+    <p><strong>Rustup</strong>：无缝的工具链管理。轻松安装、更新和切换稳定版、测试版和夜间版的编译器。</p>
+  </li>
+  <li>
+    <p>** crates.io<strong>：官方包注册中心。拥有庞大且高质量的生態系統（截至2023年超过10万个包），从 Web 框架到加密货币算法，应有尽有。#### **强大的生态系统与无所不能的适用性</strong></p>
+  </li>
+</ul>
+
+<h4 id="强大的生态系统与无所不能的适用性"><strong>强大的生态系统与无所不能的适用性</strong></h4>
+<ul>
+  <li>
+    <p><strong>Web 后端</strong>：<code class="language-plaintext highlighter-rouge">Axum</code>、<code class="language-plaintext highlighter-rouge">Rocket</code>、<code class="language-plaintext highlighter-rouge">Actix-web</code> 等框架提供了现代化、高性能的体验，媲美任何主流语言框架。</p>
+  </li>
+  <li>
+    <p><strong>前端/WebAssembly</strong>：Rust 是编译为 WASM 的顶级语言。你可以用 <code class="language-plaintext highlighter-rouge">yew</code>、<code class="language-plaintext highlighter-rouge">leptos</code> 等框架开发整个前端应用，或编写高性能的 WASM 模块供 JavaScript 调用。</p>
+  </li>
+  <li>
+    <p><strong>命令行工具 (CLI)</strong>：Rust 的静态编译、高性能和丰富的解析库（如 <code class="language-plaintext highlighter-rouge">clap</code>）使其成为编写 CLI 工具的不二之选。成功的例子包括：<code class="language-plaintext highlighter-rouge">ripgrep</code> (比 grep 更快)、<code class="language-plaintext highlighter-rouge">fd</code> (比 find 更友好)、<code class="language-plaintext highlighter-rouge">bat</code> (带语法高亮的 cat)、<code class="language-plaintext highlighter-rouge">starship</code> (超快的终端提示符)。</p>
+  </li>
+  <li>
+    <p><strong>桌面应用</strong>：通过 <code class="language-plaintext highlighter-rouge">Tauri</code> 框架，可以用 Web 技术（HTML/CSS/JS）构建前端，用 Rust 构建后端核心，生成体积极小、内存占用极低、性能极高的跨平台桌面应用。</p>
+  </li>
+  <li>
+    <p><strong>系统与嵌入式</strong>：这是 Rust 的老本行，在操作系统、数据库、游戏引擎、区块链、嵌入式设备等领域占据主导地位。</p>
+  </li>
+</ul>
+
+<h3 id="问题">问题</h3>
+
+<p><strong>编译速度</strong></p>
+
+<ul>
+  <li><strong>挑战</strong>：严格的编译时检查导致编译速度，尤其是增量编译和全量编译，慢于 Go 或 Swift。</li>
+  <li><strong>应对</strong>：</li>
+  <li>使用 <code class="language-plaintext highlighter-rouge">sccache</code> 缓存编译结果。</li>
+  <li>在开发时使用 <code class="language-plaintext highlighter-rouge">cargo check</code> 进行快速语法检查，而非每次都 <code class="language-plaintext highlighter-rouge">cargo build</code>。</li>
+  <li>工具链在持续优化，速度在不断改善。</li>
+</ul>
+
+<h2 id="企业">企业</h2>
+
+<p>企业的使命、愿景是不能变的，在重大决策中发挥作用。</p>
+
+<p>企业的规章、制度是为了践行使命、愿景的。需要不断的强化使命、愿景。</p>
+
+<h2 id="编程模式">编程模式</h2>
+
+<p>Typescript的编译器是全用函数实现的。</p>
+
+<p>应该每个类仅实现非常少的功能？
+用namespace使函数的查找更容易？oboe是这样的</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">namespace</span> <span class="n">mp3</span> <span class="p">{</span>
+<span class="k">struct</span> <span class="nc">mp3_obj</span> <span class="p">{</span>
+	<span class="kt">int</span> <span class="n">n_chans</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">n_frames</span><span class="p">;</span>
+	
+	<span class="kt">int</span> <span class="n">pos</span><span class="p">;</span>
+	<span class="kt">float</span> <span class="o">*</span><span class="n">read_frame</span><span class="p">(</span><span class="kt">int</span> <span class="n">size</span><span class="p">);</span>	
+<span class="p">};</span>
+<span class="n">mp3_obj</span> <span class="nf">init_from_file</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">path</span><span class="p">)</span> <span class="p">{}</span>
+
+
+
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h2 id="快捷键">快捷键</h2>
+
+<h3 id="桌面级">桌面级</h3>
+
+<h3 id="窗口级wezterm">窗口级(wezterm)</h3>
+
+<div class="language-lua highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'p'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ActivateCommandPalette</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'?'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span><span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ShowDebugOverlay</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'o'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ShowLauncher</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'h'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ActivateTabRelative</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">},</span> 
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'l'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ActivateTabRelative</span><span class="p">(</span><span class="mi">1</span><span class="p">)},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'{'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">MoveTabRelative</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'}'</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">MoveTabRelative</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'LeftArrow'</span><span class="p">,</span><span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ActivateTabRelative</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s1">'RightArrow'</span><span class="p">,</span><span class="n">mods</span> <span class="o">=</span> <span class="s1">'CTRL|SHIFT'</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">act</span><span class="p">.</span><span class="n">ActivateTabRelative</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"_"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">.</span><span class="n">SplitVertical</span><span class="p">({</span><span class="n">domain</span><span class="o">=</span><span class="s2">"CurrentPaneDomain"</span><span class="p">})},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"|"</span><span class="p">,</span><span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">SplitHorizontal</span><span class="o">=</span><span class="p">{</span><span class="n">domain</span><span class="o">=</span><span class="s2">"CurrentPaneDomain"</span><span class="p">}}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"n"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">SpawnTab</span><span class="o">=</span><span class="s2">"CurrentPaneDomain"</span><span class="p">}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"z"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"TogglePaneZoomState"</span> <span class="p">},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"Backspace"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">CloseCurrentPane</span><span class="o">=</span><span class="p">{</span><span class="n">confirm</span><span class="o">=</span><span class="kc">true</span><span class="p">}}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"Delete"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL|SHIFT"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">CloseCurrentPane</span><span class="o">=</span><span class="p">{</span><span class="n">confirm</span><span class="o">=</span><span class="kc">false</span><span class="p">}}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"LeftArrow"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">ActivatePaneDirection</span><span class="o">=</span><span class="s2">"Left"</span><span class="p">}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"DownArrow"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">ActivatePaneDirection</span><span class="o">=</span><span class="s2">"Down"</span><span class="p">}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"UpArrow"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">ActivatePaneDirection</span><span class="o">=</span><span class="s2">"Up"</span><span class="p">}},</span>
+<span class="p">{</span> <span class="n">key</span> <span class="o">=</span> <span class="s2">"RightArrow"</span><span class="p">,</span> <span class="n">mods</span> <span class="o">=</span> <span class="s2">"CTRL"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">wezterm</span><span class="p">.</span><span class="n">action</span><span class="p">{</span><span class="n">ActivatePaneDirection</span><span class="o">=</span><span class="s2">"Right"</span><span class="p">}},</span>
+
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>快捷键</th>
+      <th>应用</th>
+      <th>功能</th>
+      <th>备注</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>M-a</td>
+      <td>wezterm</td>
+      <td>Leader</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-S-c</td>
+      <td>wezterm</td>
+      <td>复制</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-S-v</td>
+      <td>wezterm</td>
+      <td>粘贴</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="shell级">shell级</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>快捷键</th>
+      <th>应用</th>
+      <th>功能</th>
+      <th>备注</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>C-t</td>
+      <td>fzf</td>
+      <td>fzf查找文件</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-r</td>
+      <td>fzf</td>
+      <td>fzf查找历史命令</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-c</td>
+      <td>fzf</td>
+      <td>fzf查找文件夹</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-b/M-f</td>
+      <td>bash</td>
+      <td>前后跳单词</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-W</td>
+      <td>bash</td>
+      <td>kill word (backward)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Alt-D</td>
+      <td>bash</td>
+      <td>kill word (forward)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-U</td>
+      <td>bash</td>
+      <td>kill to start of line</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>C-K</td>
+      <td>bash</td>
+      <td>kill to end of line</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="应用级neovim">应用级(neovim)</h3>
+
+<p>设置原则：</p>
+<ol>
+  <li>需要快速打开的，又不容易产生严重后果的，采用少按键的。</li>
+  <li>打开后会做很多操作的，或是误触产生严重后果的，采用多按键的。</li>
+</ol>
+
+<p>规则：
+全局用Meta和Meta+Shift控制。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>快捷键</th>
+      <th>应用</th>
+      <th>功能</th>
+      <th>备注</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>M-p</td>
+      <td>neovim</td>
+      <td>工程面板：NerdTree</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-P</td>
+      <td>neovim</td>
+      <td>查找Project：Telescope project</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-l</td>
+      <td>neovim</td>
+      <td>符号列表：Tagbar</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-L</td>
+      <td>neovim</td>
+      <td>搜索符号：Fzflua btags</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-f</td>
+      <td>neovim</td>
+      <td>搜索文件：Telescope find_files</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-F</td>
+      <td>neovim</td>
+      <td>搜索字符串：Telescope live_grep</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-b</td>
+      <td>neovim</td>
+      <td>搜索bufers</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-h</td>
+      <td>neovim</td>
+      <td>搜索help_tags</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-g</td>
+      <td>neovim</td>
+      <td>搜索git_files</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>M-t</td>
+      <td>neovim</td>
+      <td>打开终端面板: repl</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="linux-command-line-tools">Linux command line tools</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>name</th>
+      <th>description</th>
+      <th>usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>jp2a</td>
+      <td>jpeg to ascii-art</td>
+      <td><code class="language-plaintext highlighter-rouge">bash&lt;br&gt;sudo apt install jp2a&lt;br&gt;jp2a filename.jpg&lt;br&gt;</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="散热能力">散热能力</h2>
+
+<p>空气的导热系数：5-25 ${W}/{m^2K}$
+这里的K和摄氏度的单位是相同的。即每高一度，每增加一平方米散热面积，可以散热5~25 J/s 即5~25 W。</p>
+
+<p>手机散热能力是70mA每度，即说每升高一度，可以散度70mA, 4V，即0.28W。
+假设空气导热系数是5$W/m^2K$，则手机表面积为 0.28/5 $m^2$ ， 即0.056 $m^2$ ，即5.6平方分米。即 2.36分米见方。显然我们的手机没有这么大，前后面都算上，可能就1.5分米见方，约2.25平方分米。所以这里的空气导热系是按10 $W/m^2K$ 算的？</p>
+
+<p>The difference between <code class="language-plaintext highlighter-rouge">ACaptureSessionOutput</code> and <code class="language-plaintext highlighter-rouge">ACameraOutputTarget</code> is fundamental to how the Android NDK Camera2 API structures its session and request hierarchy. Here’s a clear breakdown:</p>
+
+<h2 id="c-vs-rust">C++ vs Rust</h2>
+
+<p>C++和Rust的本质区别是对灵活度的约束。
+C++不约束开发者的灵活度。Rust则很大程度上约束开发者的灵活度。
+C++不现限开发者的灵活度，这让急于prototyping的开发者很开心，敢让遇到问题摸不着头脑的开发者很沮丧。
+其实，给人以灵活度从来都是容易的事情，定义一个约束程度才是真正的难，因为这肯定不会让所有人、所有时间都开心。
+很多新的编程语言都开始限制人的自由度，比如说golang，打动我就是它有一个官方的格式化标准。
+作为一个做过很多prototyping的人，我觉得还是需要将功夫放在平时，尽量不要欠技术债，欠债总是会要求你还得更多，而且不会让你欠很久。</p>
+
+<h2 id="linux内核为什么要有线性地址">Linux内核为什么要有线性地址？</h2>
+
+<p>一些次要因素包括：1. 内核刚开始使用的是链接地址，2. 内存分配器最初只能分配出物理页
+主要因素：
+每个进程看到的内核数据结构物理地址必须是相同的。需要考虑的问题 ：
+一个进程导致了内核分配新的内存，怎么同步给其他进程的页表？
+比如说某个操作导致了page cache中增加了新的页。需要新建一个页表项，给到所有进程吗？实际的做法是所有进程没有共享内目录，但共享了所有的页表。画个图如下：
+三个进程，每个进程有一个独立的页目录，页目录只有一个4K的物理页，一个条目是4byte，因而一个页目录有1024个条目，每个条目指向一个页表，一个页表也是一个4K物理页，也是1024个条目，每个条目代码一个物理页，这个最终的物理页4KB的数据。所以一个进程在内存映射上的开销为：</p>
+<ol>
+  <li>页目录，一个物理页，共4KB</li>
+  <li>页表，1024个物理页，共4MB
+共4MB+4KB。总共可以映射1024 x 1024 x 4KB，共4GB数据。</li>
+</ol>
+
+<p>在传统的linux 32位系统中，内核线性地址占了不足1GB，1GB即256 x 1024 x 4KB，即256个页目录项的表示范围。
+为了保证各个进程之间对内核内存的视图是一致的，无论哪个进程分配或释放了内核内存，都不需要同步，linux是这样做的：</p>
+<ol>
+  <li>每个进程的页目录的前256个条目都指向相同的256个物理页。</li>
+  <li>这256个物理页是事先分配好的，永远不变。所以每个进程在创建之初就可以拷贝好。</li>
+  <li>256个页表条目的内容是可变的。也就是说内存的分配和释放可以正常进行。</li>
+  <li>由于每个进程在从虚拟地址向物理地址映射时，都是从页目录开始的，所以无论页表页的内容怎么变，只要页表页不变，每个进程看到的结果都是一样的。
+这已经回答了刚刚的问题。从这个机制可以看出，内核的线性映射区域是必须的，它的核心目的是保证每个进程看到的内核地址空间相同。如不相同会有问题吗？当前会有问题，比如说内存分配器的元数据，如果两个进程看到的不一样，那内核就没法管理内存了。再比如page cache，两个进程如果看到的页表不一样，page cache就没法在进程间共享。</li>
+</ol>
+
+<p>另外，刚刚说的是线程地址空间，因为线程映射的区域只能访问一部分物理内存，另一部分物理内存要使用的话，只能临时非线性映射的页表。这种非线程映射的页表是无法保证各进程同时可见的。linux内核如何处理这个问题？内核要求每个进程在退出内核态时，必须解映射到这块内存。也就是说，这块内存只能临时给一个进程使用。</p>
+

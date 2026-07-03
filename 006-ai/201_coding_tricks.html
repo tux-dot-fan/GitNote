@@ -1,0 +1,600 @@
+<h2 id="jupyter-notebook">jupyter notebook</h2>
+<h3 id="magic-commands">magic commands</h3>
+
+<p><a href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">参考</a></p>
+
+<p><code class="language-plaintext highlighter-rouge">%load filename</code> 将python代码加载进来，类似于bash的source。运行的效果是：
+	点一次运行：代码中的文本内容会在当前cell展开显示
+	再点一次运行：展开的代码会执行</p>
+
+<h2 id="install-torch">install torch</h2>
+
+<p>打开文档，选择用pip的安装方法，别用conda, conda容易卡住。</p>
+
+<p>https://pytorch.org/get-started/locally/</p>
+
+<h3 id="taming-transformers">taming-transformers</h3>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/CompVis/taming-transformers
+<span class="nb">cd </span>taming-transformers
+
+conda <span class="nb">env </span>create <span class="nt">-f</span> environment.yaml
+conda activate taming
+pip <span class="nb">install</span> <span class="nt">-e</span> <span class="nb">.</span>
+
+</code></pre></div></div>
+
+<h3 id="conda-install-cudatoolkit">conda install cudatoolkit</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">json</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="sh">"</span><span class="s">name</span><span class="sh">"</span><span class="p">:</span> <span class="sh">"</span><span class="s">dean</span><span class="sh">"</span><span class="p">,</span>
+	<span class="sh">"</span><span class="s">age</span><span class="sh">"</span><span class="p">:</span><span class="mi">30</span>
+<span class="p">}</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="nf">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">hello</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>https://anaconda.org/nvidia/cuda-nvcc</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span>nvidia::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.3.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.3.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.2::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.3::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.4::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.2::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.2::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.7.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.7.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-11.8.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.0.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.0.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.1.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.1.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.2::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.2::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.4.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.4.1::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.5.0::cuda-toolkit  
+conda <span class="nb">install </span>nvidia/label/cuda-12.5.1::cuda-toolkit
+</code></pre></div></div>
+
+<h3 id="conda-install-nvcc">conda install nvcc</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span>nvidia::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.3.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.3.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.2::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.3::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.4.4::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.5.2::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.6.2::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.7.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.7.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-11.8.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.0.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.0.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.1.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.1.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.2.2::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.3.2::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.4.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.4.1::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.5.0::cuda-nvcc  
+conda <span class="nb">install </span>nvidia/label/cuda-12.5.1::cuda-nvcc
+</code></pre></div></div>
+
+<h1 id="conda-environment">conda environment</h1>
+
+<h2 id="cuda-build-and-execute">cuda build and execute</h2>
+
+<p>install cuda tool kit for compilation.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda create <span class="nt">-n</span> myenv
+conda <span class="nb">install</span> <span class="nt">-c</span> nvidia cuda cuda-nvcc
+</code></pre></div></div>
+
+<p>example code(test.cu):</p>
+
+<div class="language-cuda highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span>
+<span class="c1">// CUDA kernel to perform vector addition</span>
+<span class="k">__global__</span> <span class="kt">void</span> <span class="nf">vectorAdd</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span><span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span><span class="o">*</span> <span class="n">c</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tid</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">c</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">tid</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">;</span> <span class="c1">// Size of the vectors</span>
+    <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="n">size</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">size</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">size</span><span class="p">];</span> <span class="c1">// Input and output arrays</span>
+
+    <span class="c1">// Initialize input arrays</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Declare GPU memory pointers</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">dev_a</span><span class="p">,</span> <span class="o">*</span><span class="n">dev_b</span><span class="p">,</span> <span class="o">*</span><span class="n">dev_c</span><span class="p">;</span>
+    <span class="c1">// Allocate GPU memory</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">dev_a</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">dev_b</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">dev_c</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+
+    <span class="c1">// Copy input arrays from host to GPU memory</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">dev_a</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">dev_b</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+
+    <span class="c1">// Define grid and block dimensions</span>
+    <span class="kt">int</span> <span class="n">blockSize</span> <span class="o">=</span> <span class="mi">256</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">gridSize</span> <span class="o">=</span> <span class="p">(</span><span class="n">size</span> <span class="o">+</span> <span class="n">blockSize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">blockSize</span><span class="p">;</span>
+
+    <span class="c1">// Launch CUDA kernel on the GPU</span>
+    <span class="n">vectorAdd</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridSize</span><span class="p">,</span> <span class="n">blockSize</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">dev_a</span><span class="p">,</span> <span class="n">dev_b</span><span class="p">,</span> <span class="n">dev_c</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+
+    <span class="c1">// Copy the result back from GPU to host memory</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">dev_c</span><span class="p">,</span> <span class="n">size</span> <span class="o">*</span> <span class="nf">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+
+    <span class="c1">// Print the result</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"%d + %d = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Free GPU memory</span>
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_a</span><span class="p">);</span>
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_b</span><span class="p">);</span>
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_c</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+</code></pre></div></div>
+
+<h2 id="build-and-run">build and run</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nvcc test.cu <span class="nt">-o</span> example
+./example
+</code></pre></div></div>
+
+<h1 id="conda-install-pytorch-and-pytorch-cuda">conda install pytorch and pytorch-cuda</h1>
+
+<h2 id="nvidia-version-matching">nvidia version matching</h2>
+
+<p>nvidia kernel version, toolkit version must roughly match.</p>
+
+<p>to see kernel version, use <code class="language-plaintext highlighter-rouge">nvidia-smi</code> command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nvidia-smi     
+Tue Apr 30 18:06:30 2024       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.171.04             Driver Version: 535.171.04   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|<span class="o">=========================================</span>+<span class="o">======================</span>+<span class="o">======================</span>|
+|   0  NVIDIA GeForce GTX 1080        Off | 00000000:01:00.0  On |                  N/A |
+| 32%   45C    P8              12W / 180W |    289MiB /  8192MiB |      9%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+
+</code></pre></div></div>
+
+<p>` CUDA Version: 12.2  ` is what we want to know.</p>
+
+<p>to figure out cudatoolkit version, use <code class="language-plaintext highlighter-rouge">nvcc --version</code> command:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2024 NVIDIA Corporation
+Built on Thu_Mar_28_02:18:24_PDT_2024
+Cuda compilation tools, release 12.4, V12.4.131
+Build cuda_12.4.r12.4/compiler.34097967_0
+
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">cuda_12.4.r12.4</code> is what we want to know.</p>
+
+<h2 id="install-pytorch">install pytorch</h2>
+
+<p>With <code class="language-plaintext highlighter-rouge">pytorch</code> installed, you can run your model on <code class="language-plaintext highlighter-rouge">cpu</code>.
+With <code class="language-plaintext highlighter-rouge">pytorch-cuda</code> installed, you can run your model on <code class="language-plaintext highlighter-rouge">cuda</code>.</p>
+
+<p>Install pytorch:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span><span class="nv">pytorch</span><span class="o">=</span>2.2
+</code></pre></div></div>
+<p>or</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span><span class="nv">pytorch</span><span class="o">==</span>2.2.2
+</code></pre></div></div>
+
+<p>Single equal sign indicates none exact match, while double equal sign means exact match.</p>
+
+<p>To test if cuda is available:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3
+&gt;&gt;&gt; import torch 
+&gt;&gt;&gt; print(torch.cuda.is_available())
+False
+</code></pre></div></div>
+
+<p>Install pytorch-cuda:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span>pytorch-cuda<span class="o">=</span>12.4 <span class="nt">-c</span> pytorch
+</code></pre></div></div>
+
+<p>The version better matches the cuda version you got using <code class="language-plaintext highlighter-rouge">nvidia-smi</code> command.</p>
+
+<p>Sometimes, the version you wanted does not exist, try some other versions as long as the major version matches:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda search pytorch-cuda -c pytorch
+Loading channels: done
+# Name                       Version           Build  Channel             
+pytorch-cuda                    11.6      h867d48c_0  pytorch             
+pytorch-cuda                    11.6      h867d48c_1  pytorch             
+pytorch-cuda                    11.7      h67b0de4_0  pytorch             
+pytorch-cuda                    11.7      h67b0de4_1  pytorch             
+pytorch-cuda                    11.7      h67b0de4_2  pytorch             
+pytorch-cuda                    11.7      h778d358_3  pytorch             
+pytorch-cuda                    11.7      h778d358_5  pytorch             
+pytorch-cuda                    11.8      h7e8668a_3  pytorch             
+pytorch-cuda                    11.8      h7e8668a_5  pytorch             
+pytorch-cuda                    11.8      h8dd9ede_2  pytorch             
+pytorch-cuda                    12.1      ha16c6d3_5  pytorch             
+pytorch-cuda                    12.4      hc786d27_6  pytorch 
+</code></pre></div></div>
+
+<p>For example, if your cuda version is 11.3, you may try 11.7 which has backward compatibility with version 11.3.</p>
+
+<p>Sometimes, pytorch-cuda would have dependency conflicts with python version. so you may downgrade to an older version of python as well:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda <span class="nb">install </span><span class="nv">python</span><span class="o">=</span>3.8 pytorch-cuda<span class="o">=</span>12.4  <span class="nt">-c</span> pytorch <span class="nt">-v</span>
+</code></pre></div></div>
+
+<p>better follow instructions here: https://pytorch.org/get-started/previous-versions/</p>
+
+<h2 id="vllm">vllm</h2>
+
+<h3 id="安装">安装</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>vllm
+</code></pre></div></div>
+
+<h3 id="运行">运行</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">vllm</span> <span class="kn">import</span> <span class="n">LLM</span><span class="p">,</span> <span class="n">SamplingParams</span>
+<span class="kn">import</span> <span class="n">time</span>
+
+<span class="c1">#llm = LLM(model="Qwen/Qwen2-1.5B-Instruct")  # Name or path of your model
+#help(LLM)
+</span><span class="n">path</span><span class="o">=</span><span class="sh">"</span><span class="s">./MiniCPM-2B-dpo-bf16</span><span class="sh">"</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="nc">LLM</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">max_model_len</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>  <span class="c1"># Name or path of your model
+</span><span class="nf">help</span><span class="p">(</span><span class="n">LLM</span><span class="p">)</span>
+<span class="n">sampling_params</span> <span class="o">=</span> <span class="nc">SamplingParams</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">llm</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="sh">"</span><span class="s">详细介绍一下北京</span><span class="sh">"</span><span class="p">,</span> <span class="n">sampling_params</span><span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+<span class="n">duration</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+<span class="c1">#print(output[0])
+</span><span class="n">out_tokens</span> <span class="o">=</span> <span class="nf">len</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">token_ids</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">output_tokens:</span><span class="si">{</span><span class="n">out_tokens</span><span class="si">}</span><span class="s">, time:</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s">, output speed: </span><span class="si">{</span><span class="n">out_tokens</span><span class="o">/</span><span class="n">duration</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">llm</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="sh">"</span><span class="s">详细介绍一下北京</span><span class="sh">"</span><span class="p">,</span> <span class="n">sampling_params</span><span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+<span class="n">duration</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+<span class="c1">#print(output[0])
+</span><span class="n">out_tokens</span> <span class="o">=</span> <span class="nf">len</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">token_ids</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">output_tokens:</span><span class="si">{</span><span class="n">out_tokens</span><span class="si">}</span><span class="s">, time:</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s">, output speed: </span><span class="si">{</span><span class="n">out_tokens</span><span class="o">/</span><span class="n">duration</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="参数调节">参数调节</h3>
+
+<p>显存占用：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">llm2</span> <span class="o">=</span> <span class="nc">LLM</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="sh">"</span><span class="s">./MiniCPM-2B-128k</span><span class="sh">"</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">gpu_memory_utilization</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">max_model_len</span><span class="o">=</span><span class="mi">8192</span><span class="p">)</span>
+</code></pre></div></div>
+<p>0.2表示总共使用20%的显存。不设置情况下vllm会占用所有显存，用于扩充能支持的batch数。</p>
+
+<p>nVidia显存占用量获取：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">pynvml</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="nf">nvmlInit</span><span class="p">()</span>
+<span class="n">h</span> <span class="o">=</span> <span class="nf">nvmlDeviceGetHandleByIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">info</span> <span class="o">=</span> <span class="nf">nvmlDeviceGetMemoryInfo</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">'</span><span class="s">total    : </span><span class="si">{</span><span class="n">info</span><span class="p">.</span><span class="n">total</span><span class="si">}</span><span class="sh">'</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">'</span><span class="s">free     : </span><span class="si">{</span><span class="n">info</span><span class="p">.</span><span class="n">free</span><span class="si">}</span><span class="sh">'</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">'</span><span class="s">used     : </span><span class="si">{</span><span class="n">info</span><span class="p">.</span><span class="n">used</span><span class="si">}</span><span class="sh">'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="流式输出">流式输出</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>from vllm import LLM, SamplingParams
+import time
+
+from vllm import EngineArgs, LLMEngine, RequestOutput, SamplingParams
+import asyncio
+import json
+import ssl
+from argparse import Namespace
+from typing import Any, AsyncGenerator, Optional
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, Response, StreamingResponse
+
+from vllm.engine.arg_utils import AsyncEngineArgs
+from vllm.engine.async_llm_engine import AsyncLLMEngine
+from vllm.entrypoints.launcher import serve_http
+from vllm.logger import init_logger
+from vllm.sampling_params import SamplingParams
+from vllm.usage.usage_lib import UsageContext
+from vllm.utils import (random_uuid)
+
+#path="/mnt/bn/znzx-public/models/gemma-2-2b-it"
+#llm = LLM(model="Qwen/Qwen2-1.5B-Instruct")  # Name or path of your model
+#help(LLM)
+path="/mnt/bn/znzx-public/models/MiniCPM-2B-dpo-bf16"
+
+#help(LLM)
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=4096)
+
+
+
+
+
+prompt = "详细介绍一下北京"
+
+engine_args = AsyncEngineArgs(model=path, trust_remote_code=True, dtype="float16",
+    max_model_len=4096)
+engine = LLMEngine.from_engine_args(
+                  engine_args, usage_context=UsageContext.API_SERVER)
+
+#help(engine)
+
+#results_generator = iterate_with_cancellation(
+#        results_generator, is_cancelled=False)
+
+from transformers import AutoTokenizer
+from vllm.inputs import (TextPrompt,
+                         TokensPrompt)
+tokenizer = AutoTokenizer.from_pretrained(path)
+
+
+
+def xx(prompts):
+    
+    for prompt in prompts:
+        history=[]
+        history.append({"role": "user", "content": prompt})
+        history_str = tokenizer.apply_chat_template(history, tokenize=False, add_generation_prompt=False)
+        inputs = tokenizer(history_str, return_tensors='pt')
+        ids = inputs["input_ids"].cpu()[0].tolist()
+        tp = TokensPrompt(prompt_token_ids = ids)
+        print(tp)
+        print(history_str)
+
+        start = time.time()
+        request_id = random_uuid()
+        engine.add_request(str(request_id), tp, sampling_params)
+
+    count = 0
+    while engine.has_unfinished_requests():
+        responses = engine.step()
+        count += 1
+        if count &gt; 5:
+            break
+        
+        print(responses)
+        for resp in responses:
+            print(f"req_id:{resp.request_id}, text:{resp.outputs[0].text}, len:{len(resp.outputs[0].token_ids)}")
+        
+        print("----------------")
+    
+
+    #async for token in results_generator:
+    #    count+=1
+    #    end = time.time()
+    #    if count == 1 or token.finished :
+    #        data = {
+    #            "text": token.outputs[0].text,
+    #            "token_ids":token.outputs[0].token_ids,
+    #        }
+    #        print(f'{data["text"][0:5]}, token_num:{len(data["token_ids"])}, time: {end-start}', end='', flush=True)
+    #        yield data
+            
+
+
+# Using the sync generator in a for loop
+#for item in sync_generator(xx(prompt)):
+#    print(item["text"], len(item["token_ids"]))
+
+xx([prompt, "你好呀"])
+        
+        
+#llm = LLM(model=path, trust_remote_code=True, dtype="float16",
+#    max_model_len=4096)  # Name or path of your model
+#start = time.time()
+#output = llm.generate("详细介绍一下北京", sampling_params)
+#end = time.time()
+#duration = end - start
+#print(output[0])
+#out_tokens = len(output[0].outputs[0].token_ids)
+#print(f"output_tokens:{out_tokens}, time:{duration}, output speed: {out_tokens/duration}")
+
+#start = time.time()
+#output = llm.generate("详细介绍一下北京", sampling_params)
+#end = time.time()
+#duration = end - start
+#print(output[0])
+#out_tokens = len(output[0].outputs[0].token_ids)
+#print(f"output_tokens:{out_tokens}, time:{duration}, output speed: {out_tokens/duration}")
+
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kn">from</span> <span class="n">vllm</span> <span class="kn">import</span> <span class="n">LLM</span><span class="p">,</span> <span class="n">SamplingParams</span>
+<span class="kn">import</span> <span class="n">time</span>
+
+<span class="kn">import</span> <span class="n">asyncio</span>
+<span class="kn">import</span> <span class="n">json</span>
+<span class="kn">import</span> <span class="n">ssl</span>
+<span class="kn">from</span> <span class="n">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="n">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="n">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Request</span>
+<span class="kn">from</span> <span class="n">fastapi.responses</span> <span class="kn">import</span> <span class="n">JSONResponse</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">StreamingResponse</span>
+
+<span class="kn">from</span> <span class="n">vllm.engine.arg_utils</span> <span class="kn">import</span> <span class="n">AsyncEngineArgs</span>
+<span class="kn">from</span> <span class="n">vllm.engine.async_llm_engine</span> <span class="kn">import</span> <span class="n">AsyncLLMEngine</span>
+<span class="kn">from</span> <span class="n">vllm.entrypoints.launcher</span> <span class="kn">import</span> <span class="n">serve_http</span>
+<span class="kn">from</span> <span class="n">vllm.logger</span> <span class="kn">import</span> <span class="n">init_logger</span>
+<span class="kn">from</span> <span class="n">vllm.sampling_params</span> <span class="kn">import</span> <span class="n">SamplingParams</span>
+<span class="kn">from</span> <span class="n">vllm.usage.usage_lib</span> <span class="kn">import</span> <span class="n">UsageContext</span>
+<span class="kn">from</span> <span class="n">vllm.utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">random_uuid</span><span class="p">)</span>
+
+<span class="c1">#path="/mnt/bn/znzx-public/models/gemma-2-2b-it"
+#llm = LLM(model="Qwen/Qwen2-1.5B-Instruct")  # Name or path of your model
+#help(LLM)
+</span><span class="n">path</span><span class="o">=</span><span class="sh">"</span><span class="s">/mnt/bn/znzx-public/models/MiniCPM-2B-dpo-bf16</span><span class="sh">"</span>
+
+<span class="c1">#help(LLM)
+</span><span class="n">sampling_params</span> <span class="o">=</span> <span class="nc">SamplingParams</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
+
+
+<span class="n">request_id</span> <span class="o">=</span> <span class="nf">random_uuid</span><span class="p">()</span>
+
+
+<span class="n">prompt</span> <span class="o">=</span> <span class="sh">"</span><span class="s">详细介绍一下北京</span><span class="sh">"</span>
+
+<span class="n">engine_args</span> <span class="o">=</span> <span class="nc">AsyncEngineArgs</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="sh">"</span><span class="s">float16</span><span class="sh">"</span><span class="p">,</span>
+    <span class="n">max_model_len</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">AsyncLLMEngine</span><span class="p">.</span><span class="nf">from_engine_args</span><span class="p">(</span>
+                  <span class="n">engine_args</span><span class="p">,</span> <span class="n">usage_context</span><span class="o">=</span><span class="n">UsageContext</span><span class="p">.</span><span class="n">API_SERVER</span><span class="p">)</span>
+
+<span class="c1">#results_generator = iterate_with_cancellation(
+#        results_generator, is_cancelled=False)
+</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">xx</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+    <span class="n">results_generator</span> <span class="o">=</span> <span class="n">engine</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">sampling_params</span><span class="p">,</span> <span class="n">request_id</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">results_generator</span><span class="p">:</span>
+        <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">token</span><span class="p">.</span><span class="n">finished</span> <span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="sh">"</span><span class="s">text</span><span class="sh">"</span><span class="p">:</span> <span class="n">token</span><span class="p">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="sh">"</span><span class="s">token_ids</span><span class="sh">"</span><span class="p">:</span><span class="n">token</span><span class="p">.</span><span class="n">token_ids</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s">, </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">}</span><span class="sh">"</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="sh">''</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">data</span>
+            
+<span class="k">def</span> <span class="nf">sync_generator_from_async</span><span class="p">(</span><span class="nb">aiter</span><span class="p">):</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="p">.</span><span class="nf">get_event_loop</span><span class="p">()</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">inner</span><span class="p">():</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">aiter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">item</span>
+    <span class="k">return</span> <span class="nf">inner</span><span class="p">()</span>
+
+<span class="n">asyncio</span><span class="p">.</span><span class="nf">run</span><span class="p">(</span><span class="nf">xx</span><span class="p">(</span><span class="n">prompt</span><span class="p">))</span>
+        
+        
+<span class="c1">#llm = LLM(model=path, trust_remote_code=True, dtype="float16",
+#    max_model_len=4096)  # Name or path of your model
+#start = time.time()
+#output = llm.generate("详细介绍一下北京", sampling_params)
+#end = time.time()
+#duration = end - start
+#print(output[0])
+#out_tokens = len(output[0].outputs[0].token_ids)
+#print(f"output_tokens:{out_tokens}, time:{duration}, output speed: {out_tokens/duration}")
+</span>
+<span class="c1">#start = time.time()
+#output = llm.generate("详细介绍一下北京", sampling_params)
+#end = time.time()
+#duration = end - start
+#print(output[0])
+#out_tokens = len(output[0].outputs[0].token_ids)
+#print(f"output_tokens:{out_tokens}, time:{duration}, output speed: {out_tokens/duration}")
+</span>
+
+</code></pre></div></div>
+
+<h2 id="other-tricks">other tricks</h2>
+
+<h3 id="无pytorch情况下只使用tokenizer">无Pytorch情况下只使用tokenizer</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>transformers
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kn">from</span> <span class="n">transformers</span> <span class="kn">import</span> <span class="n">AutoModelForCausalLM</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="p">.</span><span class="nf">from_pretrained</span><span class="p">(</span><span class="sh">"</span><span class="s">Qwen/Qwen1.5-7B-Chat</span><span class="sh">"</span><span class="p">)</span>
+<span class="n">model_inputs</span> <span class="o">=</span> <span class="nf">tokenizer</span><span class="p">([</span><span class="sh">"</span><span class="s">hello, I am dean</span><span class="sh">"</span><span class="p">])</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">model_inputs</span><span class="p">)</span>
+
+</code></pre></div></div>
+
+<p>显示结果：</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="err">'input_ids':</span><span class="w"> </span><span class="p">[[</span><span class="mi">14990</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">358</span><span class="p">,</span><span class="w"> </span><span class="mi">1079</span><span class="p">,</span><span class="w"> </span><span class="mi">72862</span><span class="p">]],</span><span class="w"> </span><span class="err">'attention_mask':</span><span class="w"> </span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]]}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="nvidia-cuda-pytorch-trouble-shooting">nvidia-cuda-pytorch trouble-shooting</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+Traceback (most recent call last):
+  File "./qwen_run_rich_text_pipeline.py", line 156, in &lt;module&gt;
+    extracted_formats = model_chat(extract_format_model, format_inputs, extract_format_system_prompt)
+  File "./qwen_run_rich_text_pipeline.py", line 72, in model_chat
+    input_ids.to(device),
+  File "/root/anaconda3/envs/qwen/lib/python3.8/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Unexpected error from cudaGetDeviceCount(). Did you run some cuda functions before calling NumCudaDevices() that might have already set an error? Error 803: system has unsupported display driver / cuda driver combination
+</code></pre></div></div>
+<p>解决办法：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="nv">$CUDA_HOME</span> 
+<span class="c"># /usr/local/cuda</span>
+which nvcc
+<span class="c"># /root/anaconda3/envs/qwen/bin/nvcc</span>
+
+<span class="nb">export </span><span class="nv">CUDA_HOME</span><span class="o">=</span><span class="s2">"/roo/anaconda3/envs/qwen/"</span>
+
+<span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/tiger/native_libhdfs/lib/native:/opt/tiger/jdk/jdk8u265-b01/jre/lib/amd64/server:/opt/tiger/yarn_deploy/hadoop/lib/native:/opt/tiger/yarn_deploy/hadoop/lib/native/ufs:/opt/tiger/native_libhdfs/lib/native:/opt/tiger/jdk/jdk8u265-b01/jre/lib/amd64/server:/opt/tiger/yarn_deploy/hadoop/lib/native:/opt/tiger/yarn_deploy/hadoop/lib/native/ufs:/opt/tiger/yarn_deploy/hadoop/lib/native:/opt/tiger/yarn_deploy/hadoop_current/lib/native:/opt/tiger/yarn_deploy/hadoop_current/lzo/lib:/root/anaconda3/envs/qwen//lib 
+</code></pre></div></div>
+
+<p>LD_LIBRARY_PATH关系非常大，里面文件夹的顺序也很重要。
+特别是当你的系统里有多种方式安装的cuda runtime的时候，比如你linux的方式安装了一些，用conda的方式又在venv里安装了一些。这时最好只有一个发挥作用。</p>
+

@@ -1,0 +1,89 @@
+<h1 id="使用">使用</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>qmlprofiler /usr/bin/testapp
+</code></pre></div></div>
+
+<p>or</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/bin/testapp <span class="nt">-qmljsdebugger</span><span class="o">=</span>port:12345
+
+<span class="c"># another terminal</span>
+
+qmlprofiler <span class="nt">-a</span> localhsot <span class="nt">-p</span> 12345
+
+</code></pre></div></div>
+
+<p>参考（<a href="https://doc.qt.io/qtcreator/creator-debugging-qml.html#setting-up-qml-debugging">来源</a>）：</p>
+
+<pre><code class="language-info">-qmljsdebugger=port:&lt;port&gt;[,host:&lt;ip address&gt;][,block]
+
+Where port (mandatory) specifies the debugging port, ip address (optional) specifies the IP address of the host where the application is running, and block (optional) prevents the application from running until the debug client connects to the server. This enables debugging from the start.
+</code></pre>
+
+<h1 id="diagram">diagram</h1>
+
+<pre><code class="language-plantuml">@startuml
+class QJSEnginePrivate {
+    addToDebugServer(QJSEngine *q)
+}
+
+QJSEnginePrivate &lt;|-- QQmlEnginePrivate
+QQmlEnginePrivate::profiler *-&gt; QQmlProfiler
+class QQmlEnginePrivate {
+    profiler : QQmlProfiler
+}
+
+class QJSEngine {
+    evaluate(program, fileName, lineNumber)
+    newObject()
+    newArray(length)
+    newQObject(QObject *o)
+    newQMetaObject()
+}
+
+QJSEngine &lt;|-- QQmlEngine
+class QQmlEngine {
+    rootContext();
+    setImageProvider();
+    setUrlInterpreter()
+    createContextForObject()
+    setObjectOwnersip()
+}
+
+QQmlProfilerDefinitions &lt;|-- QQmlAbstractProfilerAdaptor
+QQmlProfilerDefinitions &lt;|-- QQmlProfiler
+QQmlProfilerDefinitions &lt;|-- QQmlProfilerHelper
+QQmlProfilerHelper &lt;|-- QQmlBindingProfiler
+QQmlProfilerHelper &lt;|-- QQmlHandlingSignalProfiler
+QQmlProfilerHelper &lt;|-- QQmlCompilingProfiler
+QQmlProfilerHelper &lt;|-- QQmlVmeProfiler
+QQmlProfilerHelper &lt;|-- QQmlObjectCreationProfiler
+QQmlProfilerHelper &lt;|-- QQmlObjectCompletionProfiler
+
+QQmlBindingProfiler::profiler *-&gt; QQmlProfiler
+QQmlHandlingSignalProfiler::profiler *-&gt; QQmlProfiler
+QQmlCompilingProfiler::profiler *-&gt; QQmlProfiler
+QQmlVmeProfiler::profiler *-&gt; QQmlProfiler
+QQmlObjectCreationProfiler::profiler *-&gt; QQmlProfiler
+QQmlObjectCompletionProfiler::profiler *-&gt; QQmlProfiler
+
+class QQmlAbstractProfilerAdaptor {
+    startProfiling(features)
+    stopProfiling()
+    reportData(bool trackLocations)
+    startService(QQmlProfilerService service)
+    sendMessages()
+}
+
+class QQmlProfiler {
+    startBinding(binding, function)
+    startCompiling()
+    startHandlingSignal()
+    startCreating()
+    m_data
+}
+
+class QQmlMemoryProfiler
+@enduml
+
+</code></pre>

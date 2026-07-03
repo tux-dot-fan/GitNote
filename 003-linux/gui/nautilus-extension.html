@@ -1,0 +1,71 @@
+<h1 id="概述">概述</h1>
+
+<p>Nautilus是Gnome环境下的文件管理器。</p>
+
+<p>Nautilus支持extension，可以安装一些extension来扩展nautilus的功能。</p>
+
+<p>一般在网上看到的nautilus extension都是javascript或是python开发的。但是由于个人更熟悉C/C++。这里找到了一个C的示例程序。</p>
+
+<p><a href="https://github.com/hvoigt/simple-nautilus-extension">C语言Nautilus Extensions Example</a></p>
+
+<p>上面的链接是github repo，以防万一，下面是打包的代码：
+<a href="./assets/simple-nautilus-extension-master.zip">打包的代码</a></p>
+
+<h2 id="构建及安装">构建及安装</h2>
+
+<p>代码里只有一个源文件，源文件只有一百多行，编译为一个.so。
+安装只需要把相应的.so复制到指定的extensions目录，即/usr/lib/nautilus/extensions-2.0/。</p>
+
+<h2 id="使能">使能</h2>
+
+<p>要想使能这个extension，需要重启nautilus.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>killall nautilus<span class="p">;</span> nautilus
+</code></pre></div></div>
+
+<h2 id="加载路径">加载路径</h2>
+
+<p><code class="language-plaintext highlighter-rouge">/usr/lib/x86_64-linux-gnu/nautilus/extensions-3.0</code></p>
+
+<p>系统里有好多其他组件的extensions加载路径，可以用命令<code class="language-plaintext highlighter-rouge">find /usr -name "extensions*" -type d</code>查看。</p>
+
+<h2 id="编译依赖">编译依赖</h2>
+
+<p>使用makefile的话，可以用</p>
+
+<p><code class="language-plaintext highlighter-rouge">pkg-config --cflags libnautilus-extension</code>查看包含头文件的路径。
+可以用
+<code class="language-plaintext highlighter-rouge">pkg-config --libs libnautilus-extension</code>查看链接的动态链接库。</p>
+
+<p>cmake的话可以用：</p>
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">find_package</span><span class="p">(</span>PkgConfig REQUIRED<span class="p">)</span>
+<span class="nf">pkg_check_modules</span><span class="p">(</span>libnautilus-extension REQUIRED libnautilus-extension IMPORTED_TARGET<span class="p">)</span>
+<span class="nb">add_library</span><span class="p">(</span>xxxx SHARED src/nautilus_extension.cpp<span class="p">)</span>
+<span class="nb">target_include_directories</span><span class="p">(</span>xxxx
+        PRIVATE <span class="si">${</span><span class="nv">GTKMM3_INCLUDE_DIRS</span><span class="si">}</span>
+        <span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span>xxxx
+        <span class="si">${</span><span class="nv">GTKMM3_LIBRARIES</span><span class="si">}</span>
+        PkgConfig::libnautilus-extension
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="代码解析">代码解析</h2>
+
+<p>这个extension以.so方式存在，nautilus启动时会加载这个so，并在启动和结束时调用两个主要的函数，即：</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">nautilus_module_initialize</span> <span class="p">(</span><span class="n">GTypeModule</span>  <span class="o">*</span><span class="n">module</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">nautilus_module_shutdown</span> <span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+</code></pre></div></div>
+<p>这两个函数需要我们来实现。</p>
+
+<p>在nautilus_module_initialize函数的实现中，我们需要向glib的类型系统注册一个glib的type（这里可以理解为用C语言实现的一个具备反射能力的class,对应java或C++中的类）。这个type就是我们这个extension的具体实现。</p>
+
+<p>nautilus_module_initialize/shutdown有点类似于linux内核的module_init/exit，只是一个模块机制，并没有涉及具体功能。具体功能的提供需要我们实现另一个函数：</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">nautilus_module_list_types</span> <span class="p">(</span><span class="k">const</span> <span class="n">GType</span> <span class="o">**</span><span class="n">types</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">num_types</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>nautilus_module_list_types向这个模块查询，你实现了哪些个extension，可以在出台中放置多个。</p>
+

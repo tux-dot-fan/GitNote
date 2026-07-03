@@ -1,0 +1,168 @@
+<h1 id="data_structure">data_structure</h1>
+
+<p><a href="./code/data_structure.sh">examples</a></p>
+
+<h2 id="array">array</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">declare</span> <span class="nt">-a</span> arr
+<span class="nv">arr</span><span class="o">=(</span>1 2 4<span class="o">)</span>
+arr[2]<span class="o">=</span>5
+
+<span class="nb">echo</span> <span class="k">${</span><span class="nv">arr</span><span class="p">[@]</span><span class="k">}</span> <span class="c"># print all elements</span>
+<span class="nb">echo</span> <span class="k">${</span><span class="p">!arr[@]</span><span class="k">}</span> <span class="c"># print all keys</span>
+<span class="nb">echo</span> <span class="k">${#</span><span class="nv">arr</span><span class="p">[@]</span><span class="k">}</span> <span class="c"># print array length</span>
+
+<span class="k">for </span>i <span class="k">in</span> <span class="sb">`</span><span class="nb">seq </span>0 3<span class="sb">`</span><span class="p">;</span> <span class="k">do
+  if</span> <span class="o">[[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="k">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="k">}</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then 
+    </span><span class="nb">echo</span> <span class="s2">"arr["</span><span class="nv">$i</span><span class="s2">"] not set"</span><span class="p">;</span> 
+  <span class="k">else
+    </span><span class="nb">echo</span> <span class="s2">"arr["</span><span class="nv">$i</span><span class="s2">"]"</span> <span class="k">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="k">}</span>
+  <span class="k">fi
+done</span>
+
+<span class="c"># add new elements</span>
+arr+<span class="o">=(</span>7 9<span class="o">)</span>
+<span class="c"># delete elements, causes a hole</span>
+<span class="nb">unset </span>arr[3]
+
+<span class="k">for </span>i <span class="k">in</span> <span class="k">${</span><span class="p">!arr[@]</span><span class="k">}</span><span class="p">;</span> <span class="k">do
+  </span><span class="nb">echo</span> <span class="s2">"arr[</span><span class="nv">$i</span><span class="s2">]:</span><span class="k">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="k">}</span><span class="s2">"</span>
+<span class="k">done</span>
+
+</code></pre></div></div>
+
+<h2 id="map">map</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">declare</span> <span class="nt">-A</span> hm
+<span class="nv">hm</span><span class="o">=(</span> 
+  <span class="o">[</span>index_foo]<span class="o">=</span>value_foo 
+  <span class="o">[</span>index_bar]<span class="o">=</span>value_bar 
+  <span class="o">[</span>index_xyz]<span class="o">=</span>value_xyz 
+<span class="o">)</span>
+hm[hello]<span class="o">=</span>1
+hm[world]<span class="o">=</span>1
+hm[hello]<span class="o">=</span>2
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="k">${</span><span class="nv">hm</span><span class="p">[hello]</span><span class="k">}</span><span class="s2">"</span> <span class="o">]</span> <span class="p">;</span> <span class="k">then </span><span class="nb">echo</span> <span class="k">${</span><span class="nv">hm</span><span class="p">[hello]</span><span class="k">}</span> <span class="p">;</span> <span class="k">fi
+</span><span class="nb">echo</span> <span class="k">${</span><span class="p">!hm[@]</span><span class="k">}</span> <span class="c"># print all keys</span>
+<span class="nb">echo</span> <span class="k">${</span><span class="nv">hm</span><span class="p">[@]</span><span class="k">}</span> <span class="c"># print all elements</span>
+<span class="nb">echo</span> <span class="k">${#</span><span class="nv">hm</span><span class="p">[@]</span><span class="k">}</span> <span class="c"># print array length</span>
+</code></pre></div></div>
+
+<h1 id="zenity">zenity</h1>
+
+<h2 id="select-from-a-list">select from a list</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>zenity <span class="nt">--list</span> <span class="nt">--title</span><span class="o">=</span><span class="s2">"select"</span> <span class="nt">--column</span> <span class="s2">"selection"</span> <span class="s2">"A"</span> <span class="s2">"B X"</span> C D
+</code></pre></div></div>
+
+<p>select a disk</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">IFS</span><span class="o">=</span><span class="s1">$'</span><span class="se">\n</span><span class="s1">'</span> <span class="nv">disks</span><span class="o">=</span><span class="si">$(</span>zenity <span class="nt">--list</span> <span class="nt">--title</span><span class="o">=</span><span class="s2">"select"</span> <span class="nt">--column</span> <span class="s2">"selection"</span> <span class="si">$(</span>lsblk <span class="nt">-no</span> path,vendor,size,type /dev/sd<span class="k">*</span>  2&gt; /dev/null| <span class="nb">grep </span>disk<span class="si">))</span>
+<span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> <span class="o">==</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">do
+    </span><span class="nv">selected_disk</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="nv">$disks</span> | <span class="nb">awk</span> <span class="s1">'{print $1;}'</span><span class="si">)</span>
+    <span class="nb">echo</span> <span class="nv">$selected_disk</span>
+<span class="k">fi</span>
+
+</code></pre></div></div>
+
+<h2 id="input">input</h2>
+
+<p>input an url</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">url</span><span class="o">=</span><span class="si">$(</span>zenity <span class="nt">--title</span><span class="o">=</span><span class="s2">"win"</span> <span class="nt">--entry</span> <span class="nt">--text</span><span class="o">=</span><span class="s2">"input url"</span><span class="si">)</span>
+<span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> <span class="o">!=</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"nothing"</span>
+<span class="k">else
+    </span><span class="nb">echo</span> <span class="nv">$url</span>
+<span class="k">fi</span>
+</code></pre></div></div>
+
+<h2 id="dd-image-from-http-url">dd image from http url</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">command</span> <span class="nt">-v</span> zenity <span class="o">||</span> <span class="nb">sudo </span>apt <span class="nt">-y</span> <span class="nb">install </span>zenity
+<span class="k">function </span>select_disk<span class="o">()</span> <span class="o">{</span>
+    <span class="nv">IFS</span><span class="o">=</span><span class="s1">$'</span><span class="se">\n</span><span class="s1">'</span> <span class="nv">disks</span><span class="o">=</span><span class="si">$(</span>zenity <span class="nt">--list</span> <span class="nt">--title</span><span class="o">=</span><span class="s2">"select"</span> <span class="nt">--column</span> <span class="s2">"selection"</span> <span class="si">$(</span>lsblk <span class="nt">-no</span> path,vendor,size,type /dev/sd<span class="k">*</span>  2&gt; /dev/null| <span class="nb">grep </span>disk<span class="si">))</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> <span class="o">==</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nv">selected_disk</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="nv">$disks</span> | <span class="nb">awk</span> <span class="s1">'{print $1;}'</span><span class="si">)</span>
+        <span class="nb">echo</span> <span class="nv">$selected_disk</span>
+        <span class="k">return </span>0
+    <span class="k">fi
+    return</span> <span class="nt">-1</span>
+<span class="o">}</span>
+
+<span class="k">function </span>input_url<span class="o">()</span> <span class="o">{</span>
+    <span class="nv">url</span><span class="o">=</span><span class="si">$(</span>zenity <span class="nt">--title</span><span class="o">=</span><span class="s2">"win"</span> <span class="nt">--entry</span> <span class="nt">--text</span><span class="o">=</span><span class="s2">"input url"</span><span class="si">)</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> <span class="o">!=</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"nothing"</span>
+        <span class="k">return</span> <span class="nt">-1</span>
+    <span class="k">else
+        </span><span class="nb">echo</span> <span class="nv">$url</span>
+        <span class="k">return </span>0
+    <span class="k">fi</span>
+<span class="o">}</span>
+
+<span class="nv">disk</span><span class="o">=</span><span class="si">$(</span>select_disk<span class="si">)</span> <span class="o">&amp;&amp;</span> <span class="nv">url</span><span class="o">=</span><span class="si">$(</span>input_url<span class="si">)</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"dd if=</span><span class="nv">$url</span><span class="s2"> of=</span><span class="nv">$disk</span><span class="s2">"</span> <span class="se">\</span>
+<span class="o">&amp;&amp;</span> curl <span class="nt">-u</span> zhangfuwen:zhangfuwen <span class="nt">--silent</span> <span class="nv">$url</span> | <span class="se">\</span>
+<span class="nb">sudo dd </span><span class="nv">conv</span><span class="o">=</span>noerror,sync <span class="nv">iflag</span><span class="o">=</span>fullblock <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">status</span><span class="o">=</span>progress <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">of</span><span class="o">=</span><span class="nv">$disk</span>
+
+</code></pre></div></div>
+
+<h1 id="wget显示进度">wget显示进度</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    wget <span class="nt">--progress</span><span class="o">=</span>bar:force <span class="s2">"http://base.url.here/filename.txt"</span> <span class="nt">-O</span>/your/destination/and/filename 2&gt;&amp;1 | zenity <span class="nt">--title</span><span class="o">=</span><span class="s2">"File transfer in progress!"</span> <span class="nt">--progress</span> <span class="nt">--auto-close</span> <span class="nt">--auto-kill</span>
+</code></pre></div></div>
+
+<h1 id="wget-via-ssh">wget via ssh</h1>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh <span class="nt">-C</span> user@hostB <span class="s2">"wget -O- http://website-C"</span> <span class="o">&gt;&gt;</span> file-from-website-C
+</code></pre></div></div>
+
+<h1 id="dd">dd</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">dd </span><span class="k">if</span><span class="o">=</span>.. <span class="nv">of</span><span class="o">=</span>.. <span class="nv">status</span><span class="o">=</span>progress <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">bs</span><span class="o">=</span>10M
+</code></pre></div></div>
+
+<h1 id="所有代码">所有代码</h1>
+
+<ul>
+  <li>
+    <p><a href="/003-linux/bash/code/case.sh">/003-linux/bash/code/case.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/data_structure.sh">/003-linux/bash/code/data_structure.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/getopts.sh">/003-linux/bash/code/getopts.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/heredoc.sh">/003-linux/bash/code/heredoc.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/loops.sh">/003-linux/bash/code/loops.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/overlay_fs.sh">/003-linux/bash/code/overlay_fs.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/read.sh">/003-linux/bash/code/read.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/select.sh">/003-linux/bash/code/select.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/string_manipulation.sh">/003-linux/bash/code/string_manipulation.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/test.sh">/003-linux/bash/code/test.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/yes_no.sh">/003-linux/bash/code/yes_no.sh</a></p>
+  </li>
+  <li>
+    <p><a href="/003-linux/bash/code/zenity.sh">/003-linux/bash/code/zenity.sh</a></p>
+  </li>
+</ul>
+
+<h1 id="zsh">zsh</h1>
+
+<p>plugins=(git zsh-autosuggestions)</p>

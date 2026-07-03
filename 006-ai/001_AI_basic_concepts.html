@@ -1,0 +1,534 @@
+<h1 id="ai基础概念">AI基础概念</h1>
+
+<h2 id="floating-point-numbers">Floating point numbers</h2>
+
+<h3 id="对比">对比</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>特性</th>
+      <th>FP32</th>
+      <th>FP16</th>
+      <th>TF32</th>
+      <th>BF16</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>位数</td>
+      <td>32</td>
+      <td>16</td>
+      <td>19（模拟）</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <td>指数位</td>
+      <td><strong>8</strong></td>
+      <td>5</td>
+      <td><strong>8</strong></td>
+      <td><strong>8</strong></td>
+    </tr>
+    <tr>
+      <td>尾数位</td>
+      <td>23</td>
+      <td>10</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>数值范围</td>
+      <td>大</td>
+      <td>小（易溢出）</td>
+      <td>与 FP32 一致</td>
+      <td>与 FP32 一致</td>
+    </tr>
+    <tr>
+      <td>精度</td>
+      <td>高</td>
+      <td>中等</td>
+      <td>中等</td>
+      <td>低（最差）</td>
+    </tr>
+    <tr>
+      <td>主要用途</td>
+      <td>通用计算</td>
+      <td>推理/AMP</td>
+      <td>训练加速</td>
+      <td>AI 训练/推理</td>
+    </tr>
+    <tr>
+      <td>支持平台</td>
+      <td>广泛</td>
+      <td>一般 GPU</td>
+      <td>NVIDIA A100+</td>
+      <td>Google TPU, Intel</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>
+    <p>fp16, 即half precision floating point number, 简称half float，一个符号位，5个指数位，10个尾数位。</p>
+
+    <p>fp16的主要问题是指数位不够，从8降到5，表达的数值范围不够了。从1e-127~1e+128，降到了1e-15~1e+16.</p>
+  </li>
+  <li>
+    <p>tf32，即tensor float 32，由nVidia提出，一个符号位，8个指数位，10个尾数位。指数位个数与fp32相同，表达的数值范围相同。尾数减少了，精度不如fp32，但与fp16是一样的。共使用19个比特。</p>
+  </li>
+  <li>
+    <p>bf16，即brain float 16，由Google Brain团队提出，一个符号位，8个指数位，7个尾数位。指数位个数与fp32相同，表达的数值范围相同，尾数更少了，精度更差了，不如fp16，但AI计算能容忍。共使用16比特。</p>
+  </li>
+</ol>
+
+<hr />
+
+<h4 id="fp32single-precision-float"><strong>FP32（Single Precision Float）</strong></h4>
+
+<ul>
+  <li><strong>位数分配</strong>：1位符号 + 8位指数 + 23位尾数 = <strong>32位</strong></li>
+  <li><strong>特点</strong>：
+    <ul>
+      <li>是 IEEE 754 标准定义的标准单精度浮点数。</li>
+      <li>范围：约 <code class="language-plaintext highlighter-rouge">±1e-38</code> 到 <code class="language-plaintext highlighter-rouge">±1e+38</code></li>
+      <li>精度：大约 6~7 位有效数字</li>
+    </ul>
+  </li>
+  <li><strong>用途</strong>：传统科学计算、通用计算、早期深度学习训练。</li>
+  <li><strong>优点</strong>：精度高，数值范围大。</li>
+  <li><strong>缺点</strong>：占用内存多，计算慢，对显存带宽要求高。</li>
+</ul>
+
+<blockquote>
+  <p>✅ <strong>举例</strong>：大多数现代 GPU 在 CUDA 中默认使用 FP32 进行计算。</p>
+</blockquote>
+
+<hr />
+
+<h4 id="fp16half-precision-float"><strong>FP16（Half Precision Float）</strong></h4>
+<ul>
+  <li><strong>位数分配</strong>：1位符号 + 5位指数 + 10位尾数 = <strong>16位</strong></li>
+  <li><strong>特点</strong>：
+    <ul>
+      <li>同样是 IEEE 754 标准的一部分（但非所有设备都支持）。</li>
+      <li>范围：约 <code class="language-plaintext highlighter-rouge">±1e-15</code> 到 <code class="language-plaintext highlighter-rouge">±1e+16</code>（远小于 FP32）</li>
+      <li>精度：约 3~4 位有效数字</li>
+    </ul>
+  </li>
+  <li><strong>问题</strong>：
+    <ul>
+      <li>指数位从 8 降到 5 → 数值动态范围大幅缩小</li>
+      <li>容易发生 <strong>溢出（overflow）或下溢（underflow）</strong></li>
+      <li>尾数位虽有 10 位（比 TF32 多），但整体精度仍低于 FP32</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>⚠️ 例如：在训练中，梯度可能太小而被截断为 0（下溢），导致训练失败。</p>
+</blockquote>
+
+<ul>
+  <li><strong>用途</strong>：
+    <ul>
+      <li>用于推理（inference）场景，尤其是移动端或边缘设备</li>
+      <li>需要配合“混合精度训练”技术（如 NVIDIA 的 AMP）</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>📌 补充：虽然 FP16 内存节省一半，但因数值范围小，稳定性差，不适合直接用于模型训练。</p>
+</blockquote>
+
+<hr />
+
+<h4 id="tf32tensorfloat-32"><strong>TF32（TensorFloat-32）</strong></h4>
+<ul>
+  <li><strong>提出者</strong>：NVIDIA（Ampere 架构起支持）</li>
+  <li><strong>位数分配</strong>：1位符号 + 8位指数 + 10位尾数 = <strong>19位</strong>（实际存储仍是 32 位，但只用前 19 位做有效运算）</li>
+  <li><strong>设计思想</strong>：
+    <ul>
+      <li>保留了 <strong>FP32 的指数位（8位）</strong> → 维持相同的数值范围（<code class="language-plaintext highlighter-rouge">±1e-127 ~ ±1e+128</code>）</li>
+      <li>只有 <strong>10 位尾数</strong>（比 FP32 的 23 位少）→ 精度下降，但比 FP16 更好</li>
+    </ul>
+  </li>
+  <li><strong>优势</strong>：
+    <ul>
+      <li>保持 FP32 的数值稳定性（不易溢出/下溢）</li>
+      <li>比 FP32 快（因为减少尾数位，乘法等操作更快）</li>
+      <li>支持原生 32 位寄存器，无需额外转换</li>
+    </ul>
+  </li>
+  <li><strong>应用场景</strong>：
+    <ul>
+      <li>深度学习训练中加速矩阵乘法（GEMM）</li>
+      <li>NVIDIA A100 / H100 GPU 默认启用 TF32 加速</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>✅ <strong>关键点</strong>：TF32 是一种“硬件优化”的中间格式，不是标准浮点格式，仅在特定 GPU 上可用。</p>
+</blockquote>
+
+<hr />
+
+<h4 id="bf16brain-float-16"><strong>BF16（Brain Float 16）</strong></h4>
+<ul>
+  <li><strong>提出者</strong>：Google Brain 团队</li>
+  <li><strong>位数分配</strong>：1位符号 + 8位指数 + 7位尾数 = <strong>16位</strong></li>
+  <li><strong>设计思想</strong>：
+    <ul>
+      <li>保留 <strong>FP32 的指数位（8位）</strong> → 保持相同数值范围</li>
+      <li>尾数只有 7 位 → 精度更低，不如 FP16</li>
+    </ul>
+  </li>
+  <li><strong>优势</strong>：
+    <ul>
+      <li>与 FP32 相同的动态范围 → 不容易出现下溢/溢出</li>
+      <li>适合 AI 计算：AI 对精度容忍度较高，更关心速度和内存效率</li>
+    </ul>
+  </li>
+  <li><strong>劣势</strong>：
+    <ul>
+      <li>精度比 FP16 差（尾数更少），不适合传统数值计算</li>
+    </ul>
+  </li>
+  <li><strong>用途</strong>：
+    <ul>
+      <li>Google TPU（张量处理单元）原生支持</li>
+      <li>Intel CPU 和部分 FPGA 支持</li>
+      <li>常用于深度学习训练和推理</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>🔍 <strong>对比</strong>：
+| 格式   | 指数位 | 尾数位 | 总位数 | 动态范围 | 精度 |
+|——–|——–|——–|——–|———–|——-|
+| FP32   | 8      | 23     | 32     | 很大      | 高    |
+| FP16   | 5      | 10     | 16     | 小        | 中等  |
+| TF32   | 8      | 10     | 19     | 大        | 中等  |
+| BF16   | 8      | 7      | 16     | 大        | 低    |</p>
+</blockquote>
+
+<blockquote>
+  <p>💡 所以说：<strong>BF16 的精度比 FP16 差，但比 FP16 更稳定</strong>（因为指数位一样）。</p>
+</blockquote>
+
+<hr />
+
+<h3 id="-实际应用建议">✅ 实际应用建议：</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>场景</th>
+      <th>推荐格式</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>深度学习训练</td>
+      <td><strong>BF16 或 TF32</strong></td>
+      <td>稳定 + 快速；NVIDIA 推荐 TF32，Google 推荐 BF16</td>
+    </tr>
+    <tr>
+      <td>推理（部署）</td>
+      <td><strong>FP16 / BF16</strong></td>
+      <td>内存小，速度快，可接受较低精度</td>
+    </tr>
+    <tr>
+      <td>科学计算</td>
+      <td><strong>FP32</strong></td>
+      <td>必须保证高精度</td>
+    </tr>
+    <tr>
+      <td>边缘设备</td>
+      <td><strong>FP16</strong></td>
+      <td>内存受限，精度允许牺牲</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="tensor">Tensor</h2>
+
+<p>通常Tensor指四维矩阵，每个维度分别为<code class="language-plaintext highlighter-rouge">[N,C,W,H]</code>，即<code class="language-plaintext highlighter-rouge">batch</code>, <code class="language-plaintext highlighter-rouge">channel</code>, <code class="language-plaintext highlighter-rouge">width</code>,<code class="language-plaintext highlighter-rouge">height</code>。例如，在处理一批图像时，<code class="language-plaintext highlighter-rouge">N</code>表示同时处理的图像数量，比如32张图片；<code class="language-plaintext highlighter-rouge">C</code>表示颜色通道，如RGB图像的3个通道；<code class="language-plaintext highlighter-rouge">W</code>和<code class="language-plaintext highlighter-rouge">H</code>则分别表示图像的宽度和高度像素值，比如224x224。在CNN中，<code class="language-plaintext highlighter-rouge">N</code>表示<code class="language-plaintext highlighter-rouge">batch</code>，方便理解时可以认为它是1，就是说它实际是3维矩阵，但这仅适用于单样本处理场景，实际训练中<code class="language-plaintext highlighter-rouge">batch</code>通常大于1以提升效率和泛化能力。</p>
+
+<p>可以看到，这种表述很大程度上是为图像设计的，不适用于声音和LLM。对于声音数据，例如音频信号，通常使用一维或二维张量，如 [<code class="language-plaintext highlighter-rouge">batch</code>, <code class="language-plaintext highlighter-rouge">time_steps</code>, <code class="language-plaintext highlighter-rouge">frequency_bins</code> ]或[ <code class="language-plaintext highlighter-rouge">batch</code>, <code class="language-plaintext highlighter-rouge">channels</code>, <code class="language-plaintext highlighter-rouge">time</code> ]，其中时间步和频率箱取代了空间维度。对于LLM（大语言模型），输入往往是序列数据，张量结构可能为[ <code class="language-plaintext highlighter-rouge">batch</code>, <code class="language-plaintext highlighter-rouge">sequence_length</code>, <code class="language-plaintext highlighter-rouge">embedding_dim</code> ]，其中序列长度表示词元数量，嵌入维度捕获语义信息，完全没有空间维度的概念。因此，Tensor的维度定义需要根据具体应用灵活调整，而非局限于图像处理的传统框架。</p>
+
+<p>在LLM（Large Language Model，大语言模型）场景中，输入和输出通常以序列化的张量形式处理。输入形状一般为[ <code class="language-plaintext highlighter-rouge">batch_size</code>, <code class="language-plaintext highlighter-rouge">sequence_length</code>, <code class="language-plaintext highlighter-rouge">hidden_dim</code> ]，其中<code class="language-plaintext highlighter-rouge">batch_size</code>表示批处理大小，<code class="language-plaintext highlighter-rouge">sequence_length</code>是文本序列的长度（如512或1024个token），<code class="language-plaintext highlighter-rouge">hidden_dim</code>代表每个token的嵌入维度（例如768或1024）。输出形状与输入一致，但可能通过线性层调整维度，例如在分类任务中输出[ <code class="language-plaintext highlighter-rouge">batch_size</code>, <code class="language-plaintext highlighter-rouge">sequence_length</code>, <code class="language-plaintext highlighter-rouge">vocab_size</code> ]的概率分布。</p>
+
+<p>矩阵运算（如线性变换）可通过卷积实现转换：例如，全连接层（矩阵乘法）可视为1x1卷积，其中卷积核的输入和输出通道数对应矩阵的维度。具体地，若有一个权重矩阵W of shape [ <code class="language-plaintext highlighter-rouge">output_dim</code>, <code class="language-plaintext highlighter-rouge">input_dim</code> ]，可重塑为卷积核形状[ <code class="language-plaintext highlighter-rouge">output_dim</code>, <code class="language-plaintext highlighter-rouge">input_dim</code>, 1, 1 ]，从而对输入张量应用1x1卷积，等效于矩阵乘法。这利用了卷积的局部性和参数共享特性，但牺牲了全局连接性，适用于某些硬件优化。</p>
+
+<p>在LLM中，以下算子通常必须在HVX（Hexagon Vector eXtensions，高通的DSP向量加速单元）中：</p>
+
+<ol>
+  <li><strong>激活函数</strong>：如ReLU、GELU或Sigmoid，HVX的向量指令能高效处理逐元素操作。</li>
+  <li><strong>归一化层</strong>：如LayerNorm，涉及均值、方差计算和缩放，HVX可优化这些统计操作。</li>
+  <li><strong>元素级运算</strong>：如残差连接中的加法或乘法，HVX的向量化支持高性能处理。</li>
+</ol>
+
+<h2 id="cnn">CNN</h2>
+
+<p><img src="assets/img_1.png" alt="img_1.png" /></p>
+
+<p>每一个卷积层有Cin * Cout个卷积核，输出featuremap上[ <code class="language-plaintext highlighter-rouge">c</code>,<code class="language-plaintext highlighter-rouge">w</code>,<code class="language-plaintext highlighter-rouge">h</code>]上的值是$\sum\limits_{k=0}^{C_{in}} weight(j,k)*input(1,k)$，如果有bias，直接相加。j是输出<code class="language-plaintext highlighter-rouge">channel</code>号。k是输入<code class="language-plaintext highlighter-rouge">channel</code>号。<code class="language-plaintext highlighter-rouge">input</code>的形状[ <code class="language-plaintext highlighter-rouge">N</code>,<code class="language-plaintext highlighter-rouge">C</code>,<code class="language-plaintext highlighter-rouge">W</code>,<code class="language-plaintext highlighter-rouge">H</code> ]分别为[ 1, <code class="language-plaintext highlighter-rouge">Cin</code>, <code class="language-plaintext highlighter-rouge">Win</code>,  <code class="language-plaintext highlighter-rouge">Hin</code> ]，<code class="language-plaintext highlighter-rouge">weight</code>的形状为[ <code class="language-plaintext highlighter-rouge">N</code>,<code class="language-plaintext highlighter-rouge">C</code>,<code class="language-plaintext highlighter-rouge">W</code>,<code class="language-plaintext highlighter-rouge">H</code>]分别为[<code class="language-plaintext highlighter-rouge">Cout</code>, <code class="language-plaintext highlighter-rouge">Cin</code>, 3,3], 3是kernel size。</p>
+
+<h3 id="yolo">Yolo</h3>
+
+<ol>
+  <li>一般这模型分三个部分，backbone, head, anchors。backbone是核心部分，用于识别图像的特征。head根据这些特征对图片进行分类。anchors没懂。</li>
+  <li>yolov5的back bone是CSPDarknet-53, CSP先不解释。</li>
+  <li>Darknet-53指有53个卷积层的darknet，即darknet的一种配置形式。</li>
+  <li>Darknet 是项目的名字，它包含一个模型和一系列工具。</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> Input
+   |
+Conv2D
+   |
+Conv2D
+   |
+Residual Block x 1
+   |
+Residual Block x 2
+   |
+Residual Block x 8
+   |
+Residual Block x 8
+   |
+Residual Block x 4
+   |
+Conv2D
+   |
+Conv2D
+   |
+   FC
+   |
+Output
+   
+</code></pre></div></div>
+
+<p>Darknet-53网络：(其中一个残差块包含两个卷积层）</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="kn">import</span> <span class="n">torch</span>
+   <span class="kn">import</span> <span class="n">torch.nn</span> <span class="k">as</span> <span class="n">nn</span>
+
+<span class="k">class</span> <span class="nc">Darknet53</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">(</span><span class="n">Darknet53</span><span class="p">,</span> <span class="n">self</span><span class="p">).</span><span class="nf">__init__</span><span class="p">()</span>
+
+        <span class="c1"># 卷积层1
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 卷积层2
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 残差块1
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">resblock1</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+
+        <span class="c1"># 卷积层3
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv3</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn3</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu3</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 残差块2
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">resblock2</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock3</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+
+        <span class="c1"># 卷积层4
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv4</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn4</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu4</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 残差块3
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">resblock4</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock5</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock6</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock7</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock8</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock9</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock10</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock11</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+
+        <span class="c1"># 卷积层5
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv5</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn5</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu5</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 残差块4
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">resblock12</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock13</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock14</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock15</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock16</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock17</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock18</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock19</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+
+        <span class="c1"># 卷积层6
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">conv6</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn6</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu6</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+        <span class="c1"># 残差块5
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">resblock20</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock21</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock22</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">resblock23</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_make_resblock</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+
+        <span class="c1"># 平均池化层
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">avgpool</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">AdaptiveAvgPool2d</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu1</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn1</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu2</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn2</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu3</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn3</span><span class="p">(</span><span class="nf">selfconv3</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu4</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn4</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv4</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock4</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock5</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock6</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock7</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock8</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock9</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock10</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock11</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu5</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn5</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv5</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock12</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock13</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock14</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock15</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock16</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock17</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock18</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock19</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu6</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn6</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv6</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock20</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock21</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock22</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">resblock23</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">avgpool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">_make_resblock</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">outplanes</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<p>残差块长这样：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">torch</span>
+<span class="kn">import</span> <span class="n">torch.nn</span> <span class="k">as</span> <span class="n">nn</span>
+
+
+<span class="k">class</span> <span class="nc">ResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">(</span><span class="n">ResidualBlock</span><span class="p">,</span> <span class="n">self</span><span class="p">).</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
+
+        <span class="c1"># 如果输入输出通道数不同，需要使用1x1卷积核进行调整
+</span>        <span class="n">self</span><span class="p">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">stride</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">in_channels</span> <span class="o">!=</span> <span class="n">out_channels</span><span class="p">:</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+            <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn1</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">bn2</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+        <span class="n">out</span>  <span class="o">+=</span> <span class="n">self</span><span class="p">.</span><span class="nf">shortcut</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">(</span><span class="n">ResNet</span><span class="p">,</span> <span class="n">self</span><span class="p">).</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">in_channels</span> <span class="o">=</span> <span class="mi">16</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">layer1</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">make_layer</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">layer2</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">make_layer</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">layer3</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">make_layer</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">avg_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">AdaptiveAvgPool2d</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_layer</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">,</span> <span class="n">stride</span><span class="p">):</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">layers</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="nf">block</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">stride</span><span class="p">))</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">in_channels</span> <span class="o">=</span> <span class="n">out_channels</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">num_blocks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">layers</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="nf">block</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">relu</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">bn</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">layer1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">layer2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">layer3</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">avg_pool</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="n">out</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">ResNet18</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">ResidualBlock</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">torch</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="sh">'</span><span class="s">zeros</span><span class="sh">'</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</code></pre></div></div>
+
+<ol>
+  <li>与Darknet并举的还是ResNet, 残差网络：
+残差网络也有一些常用的配置形式：
+除了ResNet18之外，ResNet还有一系列深度不同的网络，包括ResNet34、ResNet50、ResNet101和ResNet152等。这些网络的层数分别为34、50、101和152层，其中ResNet50是最常用的一个版本。</li>
+  <li>还有一些其他的卷积神经元网络
+除了ResNet和Darknet之外，还有很多其他的深度卷积神经网络，下面列举一些比较流行的模型：</li>
+</ol>
+
+<p>VGG：VGG是由牛津大学的研究团队提出的一种深度卷积神经网络，其主要特点是采用一系列具有相同的卷积层和池化层组成的块来构建网络，在ImageNet等数据集上取得了很好的表现。</p>
+
+<p>Inception：Inception是由谷歌的研究团队提出的一种深度卷积神经网络，其主要特点是采用多个不同大小和不同结构的卷积核来提取特征，并采用并行的结构来加速计算。</p>
+
+<p>MobileNet：MobileNet是由谷歌的研究团队提出的一种轻量级深度卷积神经网络，其主要特点是采用深度可分离卷积（depthwise separable convolution）来减少计算量和参数数量，适合在移动设备等资源有限的场景中应用。</p>
+
+<p>EfficientNet：EfficientNet是由谷歌的研究团队提出的一种基于自动化神经网络结构搜索的方法来构建高效的深度卷积神经网络，既考虑了模型深度、宽度和分辨率等因素，同时也取得了很好的表现。</p>
+
+<ol>
+  <li>残差网络包含多个残差块，每个残差块是两个conv2d,只不过第一个conv2d不光接受第一个conv2d的输出，还接受它的输入。
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_make_resblock</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">),</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">Conv2d</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">BatchNorm2d</span><span class="p">(</span><span class="n">outplanes</span><span class="p">),</span>
+    <span class="n">nn</span><span class="p">.</span><span class="nc">LeakyReLU</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+

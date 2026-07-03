@@ -1,0 +1,55 @@
+<h1 id="build">build</h1>
+
+<h2 id="安装依赖">安装依赖</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nt">-y</span> <span class="nb">install </span>binutils bison bzip2 cdbs curl dbus-x11 dpkg-dev elfutils devscripts fakeroot flex git-core gperf libasound2-dev libatspi2.0-dev libbrlapi-dev libbz2-dev libcairo2-dev libcap-dev libc6-dev libcups2-dev libcurl4-gnutls-dev libdrm-dev libelf-dev libevdev-dev libffi-dev libgbm-dev libglib2.0-dev libglu1-mesa-dev libgtk-3-dev libkrb5-dev libnspr4-dev libnss3-dev libpam0g-dev libpci-dev libpulse-dev libsctp-dev libspeechd-dev libsqlite3-dev libssl-dev libudev-dev libva-dev libwww-perl libxshmfence-dev libxslt1-dev libxss-dev libxt-dev libxtst-dev locales openbox p7zip patch perl pkg-config rpm ruby subversion uuid-dev wdiff x11-utils xcompmgr xz-utils zip libbluetooth-dev libxkbcommon-dev mesa-common-dev zstd
+</code></pre></div></div>
+
+<h2 id="安装-depot_tools">安装 depot_tools</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PATH</span><span class="s2">:</span><span class="k">${</span><span class="nv">HOME</span><span class="k">}</span><span class="s2">/ChromeOS/depot_tools"</span>
+</code></pre></div></div>
+
+<h2 id="下载安装gn">下载安装gn</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://gn.googlesource.com/gn
+<span class="nb">cd </span>gn
+python3 build/gen.py
+ninja <span class="nt">-C</span> out 
+<span class="nb">sudo cp</span> ./gn /usr/bin
+</code></pre></div></div>
+
+<h2 id="下载chromium源码">下载chromium源码</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://chromium.googlesource.com/chromium
+</code></pre></div></div>
+
+<h2 id="构建chrome">构建chrome</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd </span>chromium
+fetch <span class="nt">--no-history</span> <span class="nt">--nohooks</span> chromium
+gclient runhooks
+
+<span class="nb">echo</span> <span class="s2">"target_os = ['chromeos']"</span> <span class="o">&gt;&gt;</span> .gclient
+
+<span class="nb">cd </span>src
+gn gen out/Default <span class="nt">--args</span><span class="o">=</span><span class="s1">'target_os="chromeos"'</span>
+autoninja <span class="nt">-C</span> out/Default chrome
+</code></pre></div></div>
+
+<p>编译过程大约需要 2 小时</p>
+
+<h2 id="运行chrome-os">运行chrome os</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./out/Default/chrome <span class="nt">--enable-wayland-server</span> <span class="nt">--wayland-server-socket</span><span class="o">=</span>wayland-exo
+</code></pre></div></div>
+
+<h2 id="release-build">release build</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen out_amd64-generic/Release
+autoninja <span class="nt">-C</span> out/Release chrome
+</code></pre></div></div>
+
+<h2 id="run-chrome-os-non-windowed-mode">run chrome os non-windowed mode</h2>
+

@@ -1,0 +1,189 @@
+<h1 id="change-resolution">change resolution</h1>
+
+<p>Changing gfxmode variable and temporary switching to different terminal_output (console or vga_text) should change screen resolution.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>terminal_output console
+set gfxmode=1280x1024
+terminal_output gfxterm
+</code></pre></div></div>
+
+<p>videoinfo command shows available resolutions</p>
+
+<p>You can also list multiple resolutions separated by either commas or semicolons, and GRUB will pick the first resolution the hardware can support.</p>
+
+<p>If you want the Linux kernel to maintain the resolution that was set by GRUB, you’ll also need:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set gfxpayload=keep
+</code></pre></div></div>
+
+<h1 id="rescue-command">rescue command</h1>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grub rescue&gt; set prefix=(hd0,1)/boot/grub
+grub rescue&gt; set root=(hd0,1)
+grub rescue&gt; insmod normal
+grub rescue&gt; normal
+grub rescue&gt; insmod linux
+grub rescue&gt; linux /boot/vmlinuz-3.13.0-29-generic root=/dev/sda1
+grub rescue&gt; initrd /boot/initrd.img-3.13.0-29-generic
+grub rescue&gt; boot
+</code></pre></div></div>
+
+<h1 id="chroot">chroot</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount <span class="nt">-n</span> <span class="nt">--bind</span> /root/dev /dev/.static/dev
+mount <span class="nt">-n</span> <span class="nt">--move</span> /dev /root/dev
+mount <span class="nt">-n</span> <span class="nt">--move</span> /proc /root/proc
+mount <span class="nt">-n</span> <span class="nt">--move</span> /sys /root/sys
+
+<span class="nb">exec chroot</span> /root
+<span class="nb">exec </span>systemd <span class="nt">--system</span>
+</code></pre></div></div>
+
+<h2 id="in-conclusion">in conclusion</h2>
+
+<p>in initramfs:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount <span class="nt">-t</span> ext4 /dev/sda4 /root
+<span class="nb">cd</span> /root
+<span class="nb">exec</span> ./initramfs_run.sh
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">initramfs_run.sh</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount <span class="nt">-t</span> proc proc ./proc
+mount <span class="nt">-t</span> sysfs sysfs ./sys
+mount <span class="nt">--bind</span> /dev ./dev
+mount <span class="nt">--bind</span> /dev/pts ./dev/pts
+<span class="nb">exec chroot</span> <span class="nb">.</span> sh <span class="nt">-c</span> <span class="s2">"exec /bin/systemd --system"</span>
+</code></pre></div></div>
+
+<h1 id="mount-failed">mount failed</h1>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rootfstype=ext4 add after root=
+</code></pre></div></div>
+
+<p>problem is <code class="language-plaintext highlighter-rouge">root=(hd0,4)</code> is wrong, should be <code class="language-plaintext highlighter-rouge">root=/dev/sda4</code></p>
+
+<h1 id="mount-img-partition">mount img partition</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">function </span>mount_img_part<span class="o">()</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$# </span><span class="o">!=</span>2 <span class="o">]]</span><span class="p">;</span> <span class="k">then 
+        </span><span class="nb">echo</span> <span class="s2">"error: usage </span><span class="nv">$1</span><span class="s2"> img_file dir"</span>
+        <span class="k">return
+    fi
+
+    </span><span class="nv">img_file</span><span class="o">=</span><span class="nv">$1</span>
+    <span class="nb">dir</span><span class="o">=</span><span class="nv">$2</span>
+
+    <span class="k">if</span> <span class="o">[[</span> <span class="o">!</span> <span class="nt">-f</span> <span class="nv">$img_file</span><span class="o">]]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"error: image file </span><span class="nv">$img_file</span><span class="s2"> does not exist!"</span>
+        <span class="k">return
+    fi
+
+    </span><span class="nv">start_sector</span><span class="o">=</span><span class="si">$(</span>sfdisk <span class="nt">-l</span> <span class="nv">$img_file</span> | <span class="nb">grep </span>img2 | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="si">)</span>
+    <span class="nv">start_byte</span><span class="o">=</span><span class="si">$(</span><span class="nb">expr</span> <span class="nv">$start_sector</span> <span class="se">\*</span> 512<span class="si">)</span>
+
+    <span class="k">if</span> <span class="o">[[</span> <span class="nt">-d</span> <span class="nv">$dir</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+        </span>umount <span class="nv">$dir</span> <span class="o">&gt;</span> /dev/null 2&gt;&amp;1
+    <span class="k">else
+        </span><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nv">$dir</span>
+    <span class="k">fi
+    </span><span class="nb">mkdir</span> <span class="nv">$dir</span>
+    mount-o loop,offset<span class="o">=</span><span class="nv">$start_byte</span> <span class="nv">$img_file</span> <span class="nv">$dir</span>
+<span class="o">}</span>
+
+mount ./oceanosxxxx.img /tmp/ocean_mount
+
+</code></pre></div></div>
+
+<h1 id="make-usb-disk">make usb disk</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">DEVNODE</span><span class="o">=</span>/dev/sde
+
+<span class="nb">echo</span> <span class="s2">"partioning.."</span>
+<span class="nb">sudo </span>sfdisk <span class="nv">$DEVNODE</span> &lt; <span class="o">&lt;&lt;</span> <span class="no">EOF</span><span class="sh">
+label: gpt
+label-id: 05C39BC1-E9C4-4B46-A128-5139DFF4909F
+device: /dev/sde
+unit: sectors
+first-lba: 2048
+last-lba: 120831966
+sector-size: 512
+
+/dev/sde1 : start=        2048, size=     2097152, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=1F8AAE56-AD2C-764A-840D-4AE5A5182646, name="EFI-SYSTEM"
+/dev/sde2 : start=     2099200, size=     2097152, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=06216244-E7B8-1242-B5E4-8DB10A84E603, name="BOOT"
+/dev/sde3 : start=     4196352, size=     2097152, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9EA2813E-AC7A-1F41-881C-93FAAF889FE4, name="usb_kernel"
+/dev/sde4 : start=     6293504, size=    42149888, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=D6B3D08F-03A4-C442-B299-FF53DDA920F9, name="usb_rootfs"
+/dev/sde5 : start=    48443392, size=    62148608, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=7CC46A0C-FDE7-4CA8-B692-6200BABE6833, name="usb_home"
+</span><span class="no">EOF
+</span><span class="nb">echo</span> <span class="s2">"partioning done"</span>
+
+<span class="nb">echo</span> <span class="s2">"dd efi..."</span>
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>./larkos-efi.img <span class="nv">of</span><span class="o">=</span><span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>1 <span class="nv">status</span><span class="o">=</span>progress <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">bs</span><span class="o">=</span>4K
+<span class="nb">echo</span> <span class="s2">"dd efi done"</span>
+
+<span class="nb">echo</span> <span class="s2">"dd boot..."</span>
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>./larkos-boot.img <span class="nv">of</span><span class="o">=</span><span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>2 <span class="nv">status</span><span class="o">=</span>progress <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">bs</span><span class="o">=</span>1M
+<span class="nb">echo</span> <span class="s2">"dd boot done"</span>
+
+<span class="nb">echo</span> <span class="s2">"dd kernel..."</span>
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>./larkos-kernel.img <span class="nv">of</span><span class="o">=</span><span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>3 <span class="nv">status</span><span class="o">=</span>progress <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">bs</span><span class="o">=</span>1M
+<span class="nb">echo</span> <span class="s2">"dd kernel done"</span>
+
+<span class="nb">echo</span> <span class="s2">"dd rootfs..."</span>
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>./larkos-rootfs.img <span class="nv">of</span><span class="o">=</span><span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>4 <span class="nv">status</span><span class="o">=</span>progress <span class="nv">oflag</span><span class="o">=</span>direct,sync <span class="nv">bs</span><span class="o">=</span>1M
+<span class="nb">echo</span> <span class="s2">"dd rootfs done"</span>
+
+<span class="nb">echo</span> <span class="s2">"resize2fs ..."</span>
+<span class="nb">sudo </span>resize2fs <span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>4
+<span class="nb">echo</span> <span class="s2">"resize2fs done"</span>
+
+<span class="nb">echo</span> <span class="s2">"mkfs home..."</span>
+<span class="nb">sudo </span>mkfs.ext4 <span class="k">${</span><span class="nv">DEVNODE</span><span class="k">}</span>5
+<span class="nb">echo</span> <span class="s2">"mkfs home done"</span>
+
+</code></pre></div></div>
+
+<h1 id="loop--back">loop  back</h1>
+
+<p><code class="language-plaintext highlighter-rouge">loopback loop12345 ./rootfs.img</code> 不过这个过程需要把整个文件加载到内存，而efi的驱动效率不高，文件大点就搞不定。</p>
+
+<h1 id="grubcfg-vs-menulst">grub.cfg vs menu.lst</h1>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/boot/grub/menu.lst = old
+/boot/grub/grub.conf = new
+</code></pre></div></div>
+
+<h1 id="efi引导过程">EFI引导过程</h1>
+
+<p>efi从内置碰盘引导是参考NVRAM来列出引导项的（efibootmgr)。
+efi在NVRAM之外会有fallback模式，这个模式是让你选一个盘，然后它去盘上找esp分区，然后在esp分区里找自己认识的.efi文件，这个过程一定会找的有efi/BOOT/BOOTX64.efi，剩下的就全凭
+efi firmware的开发者个人爱好了，比如说会找找grubx64.efi之类的。</p>
+
+<p>efi找到grubx64.efi引导之后，通过当前文件夹下包含一下grub.cfg文件，它的内容是：</p>
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">search.fs_uuid</span><span class="w"> </span><span class="na">eaac9bfe-14d5-437a-ad5a-e17c13010d4c</span><span class="w"> </span><span class="na">root</span><span class="w"> </span><span class="na">hd0,gpt5</span><span class="w"> 
+</span><span class="na">set</span><span class="w"> </span><span class="py">prefix</span><span class="p">=</span><span class="s">($root)'/boot/grub'</span>
+<span class="na">configfile</span><span class="w"> </span><span class="na">$prefix/grub.cfg</span><span class="w">
+</span></code></pre></div></div>
+
+<p>三行，意思分别是：</p>
+<ol>
+  <li>找到一个uuid为<code class="language-plaintext highlighter-rouge">eaac9bfe-14d5-437a-ad5a-e17c13010d4c</code>的分区，取名为hd0,gpt5，并且设置变量root的值为这个分区，即(hd0,gpt5)。</li>
+  <li>设置prefix这个变量值为(hd0,gpt5)/boot/grub，即把好个分区的/boot/grub文件夹做为grub后续操作的根文件夹。</li>
+  <li>加载另一个grub.cfg文件，即那个分区的/boot/grub/grub.cfg文件。</li>
+</ol>
+
+<p>通常如果我们知道哪个分区下面的linux操作系统的话，一句就能加载它了，即config_file (hdx,gpty)/boot/grub/grub.cfg，然后你就会看到grub正常的选OS界面了。</p>
+
+<p>(hd0,gpt5)这样的碰盘命名规则：
+磁盘从0开始，分区从1开始。</p>
+
+<p>/dev/sda5这样的命令规则：
+磁盘从a开始，分区从1开始。</p>
+
+<h1 id="参考链接">参考链接</h1>
+
+<p>http://www.jinbuguo.com/linux/grub.cfg.html 中文的
+https://www.happyassassin.net/posts/2014/01/25/uefi-boot-how-does-that-actually-work-then/ efiboot的方法，没有读完。</p>
+

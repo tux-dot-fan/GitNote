@@ -1,0 +1,37 @@
+<h1 id="cross-product-叉积">cross product 叉积</h1>
+
+<p>这个<a href="https://www.mathsisfun.com/algebra/vectors-cross-product.html">网页</a>上讲得非常好。</p>
+
+<p>这里摘图出来：
+<img src="assets/img.png" alt="assets/img.png" />
+<img src="assets/img_1.png" alt="assets/img_1.png" />
+<img src="assets/img_2.png" alt="assets/img_2.png" /></p>
+
+<p><img src="assets/img_3.png" alt="assets/img_3.png" /></p>
+
+<ol>
+  <li>叉积有两个计算方法。</li>
+  <li>二维空间是没办法计算叉积的，因为叉积的结果在另一维上。</li>
+</ol>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">point</span> <span class="p">{</span>
+    <span class="kt">float</span> <span class="n">x</span><span class="p">;</span>
+    <span class="kt">float</span> <span class="n">y</span><span class="p">;</span>
+    <span class="kt">float</span> <span class="n">z</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="k">typedef</span> <span class="n">vector</span> <span class="n">point</span>
+
+<span class="k">constexpr</span> <span class="n">vector</span> <span class="nf">cross_product</span><span class="p">(</span><span class="n">vector</span> <span class="n">a</span><span class="p">,</span> <span class="n">vector</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">b</span><span class="p">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">a</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">b</span><span class="p">.</span><span class="n">y</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">b</span><span class="p">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">a</span><span class="p">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">b</span><span class="p">.</span><span class="n">z</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">b</span><span class="p">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">b</span><span class="p">.</span><span class="n">x</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="sin">sin</h1>
+<p><img src="assets/img_5.png" alt="assets/img_4.png" /></p>
+

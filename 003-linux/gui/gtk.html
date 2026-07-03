@@ -1,0 +1,235 @@
+<h1 id="gio">gio</h1>
+
+<h2 id="gsettings">gsettings</h2>
+
+<p>gsettings好比android中的property，是系统范围的可读、可写、可watch的键值对。</p>
+
+<p>gsettings可以通过gio这个动态链接库访问、可以通过gsettings或dconf这个命令访问、可以通过dconf-editor这个图形界面工具访问。</p>
+
+<h3 id="通过gsettings访问">通过gsettings访问</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  ~ gsettings
+用法：
+  gsettings <span class="nt">--version</span>
+  gsettings <span class="o">[</span><span class="nt">--schemadir</span> 架构目录] 命令 <span class="o">[</span>参数…]
+
+命令：
+  <span class="nb">help                      </span>显示此信息
+  list-schemas              列出安装了的架构
+  list-relocatable-schemas  列出可重定位的架构
+  list-keys                 列出某个架构中的键
+  list-children             列出某个架构的子对象
+  list-recursively          递归地列出键和值
+  range                     查询某个键的范围
+  describe                  查询某个键的描述
+  get                       获取某个键值
+  <span class="nb">set                       </span>设置某个键值
+  reset                     重设某个键值
+  reset-recursively         重设指定架构中的所有值
+  writable                  检查某个键是否可写
+  monitor                   监视更改
+
+➜  ~ gsettings list-schemas
+org.gnome.settings-daemon.plugins.color
+org.gnome.crypto.pgp
+....
+org.gnome.settings-daemon.plugins.power
+
+➜  ~ gsettings list-keys org.gnome.shell
+
+app-picker-view
+command-history
+disable-user-extensions
+always-show-log-out
+disable-extension-version-validation
+app-picker-layout
+had-bluetooth-devices-setup
+favorite-apps
+enabled-extensions
+disabled-extensions
+development-tools
+introspect
+looking-glass-history
+remember-mount-password
+
+➜  ~ gsettings get org.gnome.shell favorite-apps
+<span class="o">[</span><span class="s1">'firefox-esr.desktop'</span>, <span class="s1">'org.gnome.Nautilus.desktop'</span>, <span class="s1">'org.gnome.Software.desktop'</span>, <span class="s1">'funterm.desktop'</span>, <span class="s1">'chromium.desktop'</span><span class="o">]</span>
+
+</code></pre></div></div>
+
+<h3 id="通过dconf访问">通过dconf访问</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  ~ dconf
+error: no <span class="nb">command </span>specified
+
+Usage:
+  dconf COMMAND <span class="o">[</span>ARGS...]
+
+Commands:
+  <span class="nb">help              </span>Show this information
+  <span class="nb">read              </span>Read the value of a key
+  list              List the contents of a <span class="nb">dir
+  </span>write             Change the value of a key
+  reset             Reset the value of a key or <span class="nb">dir
+  </span>compile           Compile a binary database from keyfiles
+  update            Update the system databases
+  watch             Watch a path <span class="k">for </span>changes
+  dump              Dump an entire subpath to stdout
+  load              Populate a subpath from stdin
+
+➜  ~ dconf list /
+ca/
+desktop/
+org/
+
+➜  ~ dconf list /org/gnome/shell/
+enabled-extensions
+extensions/
+favorite-apps
+overrides/
+
+➜  ~ dconf <span class="nb">read</span> /org/gnome/shell/enabled-extensions
+<span class="o">[</span><span class="s1">'dash-to-panel@jderose9.github.com'</span>, <span class="s1">'wintile@nowsci.com'</span>, <span class="s1">'ibus-indicator@example.com'</span>, <span class="s1">'kimpanel@kde.org'</span>, <span class="s1">'ibus-tweaker@tuberry.github.com'</span>, <span class="s1">'appindicatorsupport@rgcjonas.gmail.com'</span>, <span class="s1">'panel-indicators@leavitals'</span><span class="o">]</span>
+
+</code></pre></div></div>
+
+<h3 id="通过dconf-editor图形界面访问">通过dconf-editor图形界面访问</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>dconf-editor
+dconf-editor
+
+</code></pre></div></div>
+<p><img src="assets/img.png" alt="图片" /></p>
+
+<h3 id="通过gio访问">通过gio访问</h3>
+
+<ol>
+  <li>
+    <p><a href="https://docs.gtk.org/gio/migrating-gconf.html">gio gsettings</a></p>
+  </li>
+  <li>
+    <p><a href="http://www.manpagez.com/html/gio/gio-2.42.1/GSettings.php">gsettings man page</a></p>
+  </li>
+</ol>
+
+<p><a href="https://github.com/bratsche/glib/blob/master/gio/tests/gsettings.c">示例代码</a>：</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">void</span>
+<span class="nf">test_basic</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">gchar</span> <span class="o">*</span><span class="n">str</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">GSettings</span> <span class="o">*</span><span class="n">settings</span><span class="p">;</span>
+
+  <span class="n">settings</span> <span class="o">=</span> <span class="n">g_settings_new</span> <span class="p">(</span><span class="s">"org.gtk.test"</span><span class="p">);</span>
+
+  <span class="n">g_object_get</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"schema"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">g_assert_cmpstr</span> <span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="o">==</span><span class="p">,</span> <span class="s">"org.gtk.test"</span><span class="p">);</span>
+  <span class="n">g_free</span> <span class="p">(</span><span class="n">str</span><span class="p">);</span>
+
+  <span class="n">g_settings_get</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"s"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">g_assert_cmpstr</span> <span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="o">==</span><span class="p">,</span> <span class="s">"Hello, earthlings"</span><span class="p">);</span>
+  <span class="n">g_free</span> <span class="p">(</span><span class="n">str</span><span class="p">);</span>
+
+  <span class="n">g_settings_set</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"s"</span><span class="p">,</span> <span class="s">"goodbye world"</span><span class="p">);</span>
+  <span class="n">g_settings_get</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"s"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">g_assert_cmpstr</span> <span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="o">==</span><span class="p">,</span> <span class="s">"goodbye world"</span><span class="p">);</span>
+  <span class="n">g_free</span> <span class="p">(</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">str</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">backend_set</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">g_test_trap_fork</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">G_TEST_TRAP_SILENCE_STDERR</span><span class="p">))</span>
+        <span class="p">{</span>
+          <span class="n">settings</span> <span class="o">=</span> <span class="n">g_settings_new</span> <span class="p">(</span><span class="s">"org.gtk.test"</span><span class="p">);</span>
+          <span class="n">g_settings_set</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"i"</span><span class="p">,</span> <span class="mi">555</span><span class="p">);</span>
+          <span class="n">abort</span> <span class="p">();</span>
+        <span class="p">}</span>
+      <span class="n">g_test_trap_assert_failed</span> <span class="p">();</span>
+      <span class="n">g_test_trap_assert_stderr</span> <span class="p">(</span><span class="s">"*g_settings_set_value*expects type*"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+  <span class="n">g_settings_get</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"s"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">g_assert_cmpstr</span> <span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="o">==</span><span class="p">,</span> <span class="s">"goodbye world"</span><span class="p">);</span>
+  <span class="n">g_free</span> <span class="p">(</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">str</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+  <span class="n">g_settings_reset</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">);</span>
+  <span class="n">str</span> <span class="o">=</span> <span class="n">g_settings_get_string</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">);</span>
+  <span class="n">g_assert_cmpstr</span> <span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="o">==</span><span class="p">,</span> <span class="s">"Hello, earthlings"</span><span class="p">);</span>
+  <span class="n">g_free</span> <span class="p">(</span><span class="n">str</span><span class="p">);</span>
+
+  <span class="n">g_settings_set</span> <span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">"greeting"</span><span class="p">,</span> <span class="s">"s"</span><span class="p">,</span> <span class="s">"this is the end"</span><span class="p">);</span>
+  <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">settings</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+</code></pre></div></div>
+
+<h3 id="gio-c">gio C++</h3>
+
+<p><a href="https://developer-old.gnome.org/glibmm/unstable/classGio_1_1Settings.html">by including &lt;giomm/settings.h&gt; and use class Settings</a></p>
+
+<h2 id="desktop-apps">desktop apps</h2>
+
+<p>如果要开发一个launcher, 需要获取系统所有的应用程序列表。你可以手动去/usr/share/applications文件夹下搜.desktop文件，但gio提供了现成的接手，而且可能比你自己搜索更加全面。</p>
+
+<p><a href="https://developer-old.gnome.org/glibmm/unstable/classGio_1_1AppInfo.html">Gio::AppInfo</a></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">AppInfo</span> <span class="o">&gt;</span> <span class="o">&gt;</span> 	<span class="n">get_all</span> <span class="p">()</span> <span class="c1">// 	Gets a list of all of the applications currently registered on this system.</span>
+<span class="n">tatic</span> <span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">AppInfo</span> <span class="o">&gt;</span> 	<span class="n">create_from_commandline</span> <span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">commandline</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">application_name</span><span class="p">,</span> <span class="n">CreateFlags</span> <span class="n">flags</span><span class="p">)</span>
+<span class="n">bool</span> <span class="n">Gio</span><span class="o">::</span><span class="n">AppInfo</span><span class="o">::</span><span class="n">launch</span>	<span class="p">(</span>	<span class="k">const</span> <span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">Gio</span><span class="o">::</span><span class="n">File</span> <span class="o">&gt;&amp;</span> 	<span class="n">file</span>	<span class="p">)</span>	
+<span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span><span class="n">Icon</span><span class="o">&gt;</span> <span class="n">Gio</span><span class="o">::</span><span class="n">AppInfo</span><span class="o">::</span><span class="n">get_icon</span>	<span class="p">()</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Gio</span><span class="o">::</span><span class="n">AppInfo</span><span class="o">::</span><span class="n">get_executable</span>	<span class="p">()</span>	<span class="k">const</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Gio</span><span class="o">::</span><span class="n">AppInfo</span><span class="o">::</span><span class="n">get_display_name</span>	<span class="p">()</span>	<span class="k">const</span>
+
+
+</code></pre></div></div>
+
+<h2 id="unix-domain-socket">unix domain socket</h2>
+
+<p>GIO提供了一个Unix Domain socket的封装，可以用来发送普通消息和fd。</p>
+
+<p><a href="https://developer-old.gnome.org/glibmm/unstable/classGio_1_1UnixConnection.html">UnixConnection</a></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bool</span> 	<span class="n">send_fd</span> <span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="k">const</span> <span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">Cancellable</span> <span class="o">&gt;&amp;</span> <span class="n">cancellable</span><span class="p">)</span>
+<span class="c1">// 	Passes a file descriptor to the receiving side of the connection.</span>
+
+<span class="kt">int</span> 	<span class="n">receive_fd</span> <span class="p">()</span>
+<span class="c1">// 	A receive_fd() convenience overload.</span>
+<span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">InputStream</span> <span class="o">&gt;</span> 	<span class="n">get_input_stream</span> <span class="p">()</span> <span class="c1">//父类方法，用于发送接收普通数据</span>
+<span class="n">Glib</span><span class="o">::</span><span class="n">RefPtr</span><span class="o">&lt;</span> <span class="n">OutputStream</span> <span class="o">&gt;</span> 	<span class="n">get_output_stream</span> <span class="p">()</span>
+</code></pre></div></div>
+
+<h1 id="glib">Glib</h1>
+
+<h2 id="misc-utils">Misc Utils</h2>
+
+<p><a href="https://developer-old.gnome.org/glibmm/unstable/group__MiscUtils.html">Utils 文档</a></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//xdg base dirs</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">get_current_dir</span> <span class="p">()</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">get_user_config_dir</span> <span class="p">()</span>
+
+<span class="c1">// environment variables</span>
+<span class="n">Glib</span><span class="o">::</span><span class="n">ustring</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">get_host_name</span> <span class="p">()</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">getenv</span> <span class="p">(</span><span class="n">StdStringView</span> <span class="n">variable</span><span class="p">)</span>
+<span class="n">bool</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">setenv</span> <span class="p">(</span><span class="n">StdStringView</span> <span class="n">variable</span><span class="p">,</span> <span class="n">StdStringView</span> <span class="n">value</span><span class="p">,</span> <span class="n">bool</span> <span class="n">overwrite</span><span class="o">=</span><span class="nb">true</span><span class="p">)</span>
+
+<span class="c1">// path utils</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">path_get_basename</span> <span class="p">(</span><span class="n">StdStringView</span> <span class="n">filename</span><span class="p">)</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">path_get_dirname</span> <span class="p">(</span><span class="n">StdStringView</span> <span class="n">filename</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="file-utils">File Utils</h2>
+
+<p><a href="https://developer-old.gnome.org/glibmm/unstable/group__FileUtils.html">File Utils</a></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">class</span>  	<span class="n">Glib</span><span class="o">::</span><span class="n">DirIterator</span>
+<span class="n">class</span>  	<span class="n">Glib</span><span class="o">::</span><span class="n">Dir</span>
+<span class="n">bool</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">file_test</span> <span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">filename</span><span class="p">,</span> <span class="n">FileTest</span> <span class="n">test</span><span class="p">)</span>
+<span class="kt">int</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">mkstemp</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">filename_template</span><span class="p">)</span>
+<span class="kt">int</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">file_open_tmp</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">name_used</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">prefix</span><span class="p">)</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> 	<span class="n">Glib</span><span class="o">::</span><span class="n">file_get_contents</span> <span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">filename</span><span class="p">)</span>
+
+        
+</code></pre></div></div>

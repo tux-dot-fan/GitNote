@@ -1,0 +1,339 @@
+<h1 id="predefined-macros">predefined macros</h1>
+
+<h2 id="os-type">OS Type</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    __linux__       Defined on Linux
+    __sun           Defined on Solaris
+    __FreeBSD__     Defined on FreeBSD
+    __NetBSD__      Defined on NetBSD
+    __OpenBSD__     Defined on OpenBSD
+    __APPLE__       Defined on Mac OS X
+    __hpux          Defined on HP-UX
+    __osf__         Defined on Tru64 UNIX (formerly DEC OSF1)
+    __sgi           Defined on Irix
+    _AIX            Defined on AIX
+    _WIN32          Defined on Windows
+</code></pre></div></div>
+
+<p>usage:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#ifdef __linux__ 
+</span>    <span class="c1">//linux code goes here</span>
+<span class="cp">#elif _WIN32
+</span>    <span class="c1">// windows code goes here</span>
+<span class="cp">#else
+</span>
+<span class="cp">#endif
+</span></code></pre></div></div>
+
+<h1 id="stdbindstdthread-pass-by-reference">std::bind/std::thread pass by reference</h1>
+
+<p>std::bind/std::thread传参数时会强制拷贝，所以传引用不会起做用，比如说：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="kr">thread</span> <span class="n">thr</span><span class="p">([](</span><span class="kt">int</span> <span class="o">&amp;</span> <span class="n">param</span><span class="p">){</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="p">},</span> <span class="n">val</span><span class="p">);</span>
+    <span class="n">thr</span><span class="p">.</span><span class="n">join</span><span class="p">();</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span> <span class="c1">// result is 5 instead of 6.</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>由于val在传参数拷贝了一份，在线程内修改param，并不影响val的值，所以线程退出后val的值还是5而不是6。</p>
+
+<p>要解决这个问题可以用std::ref(val)这种方式去传参。std::ref(val)会把val包装在一个对象里，这个对象可以像int &amp;一样使用（隐式转换）, 但是copy的时候依然保持引用状态。下面的代码是可以达到在线程里修改val值的目的的。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="kr">thread</span> <span class="n">thr</span><span class="p">([](</span><span class="kt">int</span> <span class="o">&amp;</span> <span class="n">param</span><span class="p">){</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="p">},</span> <span class="n">std</span><span class="o">::</span><span class="n">ref</span><span class="p">(</span><span class="n">val</span><span class="p">));</span>
+    <span class="n">thr</span><span class="p">.</span><span class="n">join</span><span class="p">();</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span> <span class="c1">// result is 6</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="stdbindstdthread-pass-by-reference完美转发">std::bind/std::thread pass by reference完美转发</h1>
+
+<p>std::bind/std::thread无法用std::forward实现完美转发了，需要一个helper方法：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="n">std</span><span class="o">::</span><span class="n">reference_wrapper</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">maybe_wrap</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">ref</span><span class="p">(</span><span class="n">val</span><span class="p">);</span> <span class="p">}</span>
+    <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="n">T</span><span class="o">&amp;&amp;</span> <span class="n">maybe_wrap</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;&amp;</span> <span class="n">val</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">val</span><span class="p">);</span> <span class="p">}</span>
+    
+    <span class="c1">// 转发时</span>
+    <span class="k">auto</span> <span class="n">taskPtr</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">packaged_task_type</span><span class="o">&gt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">bind</span><span class="p">(</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">Ret</span><span class="p">(</span><span class="n">Args</span><span class="p">...)</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">callable</span><span class="p">),</span> <span class="n">maybe_wrap</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">Args</span><span class="o">&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">))...));</span>
+    <span class="c1">// 即</span>
+    <span class="n">maybe_wrap</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">Args</span><span class="o">&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">))...</span>
+</code></pre></div></div>
+
+<h1 id="c-type-list">C++ type list</h1>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="n">MyTypeList</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">GenericFile</span><span class="p">,</span>
+                                  <span class="n">TextFile</span><span class="p">,</span>
+                                  <span class="n">ImageFile</span><span class="p">,</span>
+                                  <span class="n">AudioFile</span><span class="p">,</span>
+                                  <span class="n">VideoFile</span><span class="o">&gt;</span><span class="p">;</span>
+                                  
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">List</span><span class="p">,</span> <span class="kt">int</span><span class="p">...</span> <span class="n">ints</span><span class="p">&gt;</span>
+<span class="kt">void</span> <span class="nf">UseTypes</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">integer_sequence</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">ints</span><span class="p">...</span><span class="o">&gt;</span> <span class="n">int_seq</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="p">((</span><span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">ints</span><span class="p">)),</span> <span class="p">...);</span>
+    <span class="p">([</span><span class="o">&amp;</span><span class="p">]{</span>
+         <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ints</span><span class="p">);</span>
+         <span class="k">using</span> <span class="n">E</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple_element</span><span class="o">&lt;</span><span class="n">ints</span><span class="p">,</span> <span class="n">List</span><span class="o">&gt;::</span><span class="n">type</span><span class="p">;</span>
+         <span class="k">auto</span> <span class="n">name</span> <span class="o">=</span> <span class="n">E</span><span class="o">::</span><span class="n">name</span><span class="p">();</span> <span class="c1">// call static member function</span>
+         <span class="k">auto</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">();</span> <span class="c1">// construct an instance</span>
+         <span class="k">auto</span> <span class="n">instName</span> <span class="o">=</span> <span class="n">ptr</span><span class="o">-&gt;</span><span class="n">instName</span><span class="p">();</span> <span class="c1">// call instance member function</span>
+     <span class="p">}(),...);</span> <span class="c1">// fold expression</span>
+<span class="p">}</span>
+
+<span class="k">const</span> <span class="kt">int</span> <span class="n">numTypes</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple_size_v</span><span class="o">&lt;</span><span class="n">MyTypeList</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">UseTypes</span><span class="o">&lt;</span><span class="n">MyTypeList</span><span class="o">&gt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_integer_sequence</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">numTypes</span><span class="o">&gt;</span><span class="p">{});</span>
+</code></pre></div></div>
+
+<h1 id="c-print-variant">C++ print variant</h1>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">using</span> <span class="n">Error</span> <span class="o">=</span> <span class="kt">int</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">File</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span>
+    <span class="n">Error</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">GenericFile</span><span class="o">&gt;</span><span class="p">,</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">TextFile</span><span class="o">&gt;</span><span class="p">,</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ImageFile</span><span class="o">&gt;</span><span class="p">,</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">AudioFile</span><span class="o">&gt;</span><span class="p">,</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">VideoFile</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Variant</span><span class="p">,</span> <span class="kt">int</span><span class="p">...</span> <span class="n">ints</span><span class="p">&gt;</span>
+<span class="kt">void</span> <span class="nf">PrintResult</span><span class="p">(</span><span class="n">Variant</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">integer_sequence</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">ints</span><span class="p">...</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">([</span><span class="o">&amp;</span><span class="p">]{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ints</span><span class="p">);</span>
+        <span class="k">using</span> <span class="n">E</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">std</span><span class="o">::</span><span class="n">variant_alternative_t</span><span class="o">&lt;</span><span class="n">ints</span><span class="p">,</span> <span class="n">Variant</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">E</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">holds_alternative</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// runtime type test</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"error "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">get</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">holds_alternative</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// runtime type test</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">get</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">toString</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="c1">// other types must implement toString</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}(),...);</span>
+<span class="p">}</span>
+
+<span class="k">auto</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">SomeFunctionThatReturnsVariant</span><span class="p">();</span>
+<span class="k">constexpr</span> <span class="kt">int</span> <span class="n">numTypes</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">variant_size_v</span><span class="o">&lt;</span><span class="n">FileInfo</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">PrintResult</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">make_integer_sequence</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">numTypes</span><span class="o">&gt;</span><span class="p">{});</span>
+
+</code></pre></div></div>
+
+<h1 id="static-member-function-and-compile-time-polymorphism">static member function and compile time polymorphism</h1>
+
+<p>just return variant and use printResult like in the previous section.</p>
+
+<p>other  useful templates:</p>
+
+<h2 id="stdget_if">std::get_if</h2>
+
+<p>run time test, pass type or zero-based index, returns a pointer or nullptr.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">float</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">;</span>
+<span class="kt">int</span> <span class="o">*</span><span class="n">pv</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">get_if</span><span class="o">&lt;</span><span class="n">Type</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">v</span><span class="p">);</span>
+<span class="k">if</span><span class="p">(</span><span class="n">pv</span> <span class="o">!=</span> <span class="nb">nullptr</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">pv</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kt">float</span> <span class="o">*</span> <span class="n">pf</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">get_if</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">v</span><span class="p">);</span>
+<span class="k">if</span><span class="p">(</span><span class="n">pf</span> <span class="o">!=</span> <span class="nb">nullptr</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">pf</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="stdvisit">std::visit</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">include</span> <span class="o">&lt;</span><span class="n">iomanip</span><span class="o">&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;type_traits&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;variant&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp">
+</span> 
+<span class="c1">// the variant to visit</span>
+<span class="k">using</span> <span class="n">var_t</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">long</span><span class="p">,</span> <span class="kt">double</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">;</span>
+ 
+<span class="c1">// helper constant for the visitor #3</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="p">&gt;</span> <span class="kr">inline</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="n">always_false_v</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+ 
+<span class="c1">// helper type for the visitor #4</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="o">...</span> <span class="nc">Ts</span><span class="p">&gt;</span> <span class="k">struct</span> <span class="nc">overloaded</span> <span class="o">:</span> <span class="n">Ts</span><span class="p">...</span> <span class="p">{</span> <span class="k">using</span> <span class="n">Ts</span><span class="o">::</span><span class="k">operator</span><span class="p">()...;</span> <span class="p">};</span>
+<span class="c1">// explicit deduction guide (not needed as of C++20)</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="o">...</span> <span class="nc">Ts</span><span class="p">&gt;</span> <span class="n">overloaded</span><span class="p">(</span><span class="n">Ts</span><span class="p">...)</span> <span class="o">-&gt;</span> <span class="n">overloaded</span><span class="o">&lt;</span><span class="n">Ts</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+ 
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">var_t</span><span class="o">&gt;</span> <span class="n">vec</span> <span class="o">=</span> <span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15l</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s">"hello"</span><span class="p">};</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="n">v</span><span class="o">:</span> <span class="n">vec</span><span class="p">)</span> <span class="p">{</span>
+ 
+        <span class="c1">// 1. void visitor, only called for side-effects (here, for I/O)</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">([](</span><span class="k">auto</span><span class="o">&amp;&amp;</span> <span class="n">arg</span><span class="p">){</span><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span><span class="p">;},</span> <span class="n">v</span><span class="p">);</span>
+ 
+        <span class="c1">// 2. value-returning visitor, demonstrates the idiom of returning another variant</span>
+        <span class="n">var_t</span> <span class="n">w</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">([](</span><span class="k">auto</span><span class="o">&amp;&amp;</span> <span class="n">arg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">var_t</span> <span class="p">{</span><span class="k">return</span> <span class="n">arg</span> <span class="o">+</span> <span class="n">arg</span><span class="p">;},</span> <span class="n">v</span><span class="p">);</span>
+ 
+        <span class="c1">// 3. type-matching visitor: a lambda that handles each type differently</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">". After doubling, variant holds "</span><span class="p">;</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">([](</span><span class="k">auto</span><span class="o">&amp;&amp;</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">using</span> <span class="n">T</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">decay_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+            <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">)</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"int with value "</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span> <span class="o">&lt;&lt;</span> <span class="sc">'\n'</span><span class="p">;</span>
+            <span class="k">else</span> <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">long</span><span class="o">&gt;</span><span class="p">)</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"long with value "</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span> <span class="o">&lt;&lt;</span> <span class="sc">'\n'</span><span class="p">;</span>
+            <span class="k">else</span> <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">double</span><span class="o">&gt;</span><span class="p">)</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"double with value "</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span> <span class="o">&lt;&lt;</span> <span class="sc">'\n'</span><span class="p">;</span>
+            <span class="k">else</span> <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">)</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"std::string with value "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">quoted</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="sc">'\n'</span><span class="p">;</span>
+            <span class="k">else</span> 
+                <span class="k">static_assert</span><span class="p">(</span><span class="n">always_false_v</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="s">"non-exhaustive visitor!"</span><span class="p">);</span>
+        <span class="p">},</span> <span class="n">w</span><span class="p">);</span>
+    <span class="p">}</span>
+ 
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="n">v</span><span class="o">:</span> <span class="n">vec</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 4. another type-matching visitor: a class with 3 overloaded operator()'s</span>
+        <span class="c1">// Note: The `(auto arg)` template operator() will bind to `int` and `long`</span>
+        <span class="c1">//       in this case, but in its absence the `(double arg)` operator()</span>
+        <span class="c1">//       *will also* bind to `int` and `long` because both are implicitly</span>
+        <span class="c1">//       convertible to double. When using this form, care has to be taken</span>
+        <span class="c1">//       that implicit conversions are handled correctly.</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">(</span><span class="n">overloaded</span> <span class="p">{</span>
+            <span class="p">[](</span><span class="k">auto</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span> <span class="o">&lt;&lt;</span> <span class="sc">' '</span><span class="p">;</span> <span class="p">},</span>
+            <span class="p">[](</span><span class="kt">double</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">fixed</span> <span class="o">&lt;&lt;</span> <span class="n">arg</span> <span class="o">&lt;&lt;</span> <span class="sc">' '</span><span class="p">;</span> <span class="p">},</span>
+            <span class="p">[](</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">quoted</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="sc">' '</span><span class="p">;</span> <span class="p">}</span>
+        <span class="p">},</span> <span class="n">v</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="simplified-printvariant">simplified PrintVariant</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">PrintInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Variant</span> <span class="o">&amp;</span><span class="n">info</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">([](</span><span class="k">auto</span> <span class="o">&amp;&amp;</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">using</span> <span class="n">T</span><span class="o">=</span> <span class="k">typename</span> <span class="n">std</span><span class="o">::</span><span class="n">decay_t</span><span class="o">&lt;</span><span class="k">decltype</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="k">if</span> <span class="k">constexpr</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">Error</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">FUN_INFO</span><span class="p">(</span><span class="s">"error %d"</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>
+        <span class="p">}</span>  <span class="k">else</span> <span class="p">{</span>
+            <span class="n">FUN_INFO</span><span class="p">(</span><span class="s">"result: %s"</span><span class="p">,</span> <span class="n">arg</span><span class="o">-&gt;</span><span class="n">toString</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+        <span class="p">}</span>
+    <span class="p">},</span> <span class="n">info</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="concept">concept</h1>
+
+<h2 id="use-a-concept">use a concept</h2>
+
+<h3 id="replace-typename">replace typename</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="n">HasNameConcept</span> <span class="n">T</span><span class="p">&gt;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="nf">GetName</span><span class="p">(</span><span class="n">T</span> <span class="o">&amp;</span><span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">.</span><span class="n">name</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// or</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="n">HasStaticNameConcept</span> <span class="n">T</span><span class="p">&gt;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="nf">GetName</span><span class="p">(</span><span class="n">T</span> <span class="o">&amp;</span><span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">T</span><span class="o">::</span><span class="n">name</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="requires-key-word--junction">requires key word &amp; junction</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">requires</span> <span class="n">HasNameConcept</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">&amp;&amp;</span> <span class="n">HasClassNameConcept</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="nf">GetName</span><span class="p">(</span><span class="n">T</span> <span class="o">&amp;</span><span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> <span class="n">T</span><span class="o">::</span><span class="n">class_name</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="defination">defination</h2>
+
+<h3 id="-requires-t-t---compiles-">= requires (T t) { /* compiles */}</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">HasName</span> <span class="o">=</span> <span class="k">requires</span><span class="p">(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">t</span><span class="p">.</span><span class="n">name</span><span class="p">();</span>
+<span class="p">};</span>
+
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">HasClassName</span> <span class="o">=</span> <span class="k">requires</span><span class="p">(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+   <span class="n">T</span><span class="o">::</span><span class="n">className</span><span class="p">();</span> 
+<span class="p">};</span>
+
+<span class="k">static_assert</span><span class="p">(</span><span class="n">HasName</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">);</span>
+<span class="k">static_assert</span><span class="p">(</span><span class="n">HasClassName</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="alias-and-conjunctioncompile-time-truefalse-values">alias and conjunction(compile time true/false values)</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">B</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">D</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">Derived</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">is_base_of</span><span class="o">&lt;</span><span class="n">B</span><span class="p">,</span><span class="n">D</span><span class="o">&gt;::</span><span class="n">value</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">const</span> <span class="k">static</span> <span class="kt">int</span> <span class="n">value</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">BigClass</span> <span class="o">=</span> <span class="n">T</span><span class="o">::</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">D</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">HasBothNames</span> <span class="o">=</span> <span class="n">HasName</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span> 
+                    <span class="o">&amp;&amp;</span> <span class="n">HasClassName</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> 
+                    <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">!</span><span class="n">std</span><span class="o">::</span><span class="n">is_base_of</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="n">D</span><span class="o">&gt;::</span><span class="n">value</span><span class="p">)</span>
+                    <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">8</span> <span class="o">||</span> <span class="n">T</span><span class="o">::</span><span class="n">class_value</span> <span class="o">==</span> <span class="mi">8</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="partial-specialization">partial specialization</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">B</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">D</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">Derived</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">is_base_of</span><span class="o">&lt;</span><span class="n">B</span><span class="p">,</span><span class="n">D</span><span class="o">&gt;::</span><span class="n">value</span><span class="p">;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">concept</span> <span class="n">DerivedFromA</span> <span class="o">=</span> <span class="n">Derived</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">B</span> <span class="o">:</span>  <span class="n">A</span> <span class="p">{};</span>
+<span class="k">static_assert</span><span class="p">(</span><span class="n">DerivedFromA</span><span class="o">&lt;</span><span class="n">B</span><span class="o">&gt;</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="atomic-constrains-ie-compile-time-bool-like-operator-bool">atomic constrains i.e. compile time bool like operator bool</h3>
+
+<p>can’t be alias’d as a concept.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">IS</span> <span class="p">{</span>
+    <span class="k">constexpr</span> <span class="k">operator</span> <span class="kt">bool</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">T</span><span class="o">::</span><span class="n">ok</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">T</span><span class="o">::</span><span class="n">ok</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">class</span> <span class="nc">C</span> <span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">const</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">ok</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">//template &lt;typename T&gt;</span>
+<span class="c1">//concept XX = requires (IS&lt;T&gt;{});  // does not work</span>
+<span class="c1">//</span>
+<span class="c1">//static_assert(XX&lt;C&gt;); // does not work</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">requires</span> <span class="p">(</span><span class="n">IS</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">{}</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">IS</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">{}.</span><span class="n">func</span><span class="p">())</span>  <span class="c1">// works</span>
+<span class="kt">void</span> <span class="nf">test</span><span class="p">()</span> <span class="p">{</span>
+<span class="p">}</span>
+</code></pre></div></div>
+

@@ -1,0 +1,366 @@
+<h1 id="go-113-使用goproxycn访问github">go 1.13 使用goproxy.cn访问github</h1>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go <span class="nb">env</span> <span class="nt">-w</span> <span class="nv">GOPROXY</span><span class="o">=</span>https://goproxy.cn,direct
+</code></pre></div></div>
+
+<h1 id="较旧版本使用goproxycn">较旧版本使用goproxy.cn</h1>
+
+<p>使用方法：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">GOPROXY</span><span class="o">=</span>https://goproxy.cn
+</code></pre></div></div>
+
+<p>或</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">GO111MODULE</span><span class="o">=</span>on
+<span class="nb">export </span><span class="nv">GOPROXY</span><span class="o">=</span>https://goproxy.cn
+</code></pre></div></div>
+
+<p>或直接写入：～/.bash_profile</p>
+
+<h1 id="buffalo-安装和生成项目">buffalo 安装和生成项目</h1>
+
+<p>install node and npm first:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>node npm
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget https://github.com/gobuffalo/buffalo/releases/download/v0.15.5/buffalo_0.15.5_Linux_x86_64.tar.gz
+
+<span class="c">## untar and put it under $PATH</span>
+
+buffalo new coke <span class="nt">--db-type</span> mysql
+vi database.yaml
+buffalo pop create <span class="c"># create db base</span>
+<span class="nv">ADDR</span><span class="o">=</span>0.0.0.0 buffalo dev
+</code></pre></div></div>
+
+<h1 id="gofmt">gofmt</h1>
+<p>代码提交之前一定要go fmt格式化。</p>
+
+<h1 id="注释">注释</h1>
+<p>在编码阶段同步写好变量、函数、包注释，注释可以通过godoc导出生成文档。</p>
+
+<p>注释必须是完整的句子，以需要注释的内容作为开头，句点作为结尾。</p>
+
+<p>程序中每一个被导出的（大写的）名字，都应该有一个文档注释。</p>
+
+<h2 id="包注释">包注释</h2>
+<p>每个程序包都应该有一个包注释，一个位于package子句之前的块注释或行注释。</p>
+
+<p>包如果有多个go文件，只需要出现在一个go文件中即可。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">//Package regexp implements a simple library </span>
+<span class="c">//for regular expressions.</span>
+<span class="k">package</span> <span class="n">regexp</span> 
+</code></pre></div></div>
+
+<h2 id="可导出类型">可导出类型</h2>
+<p>第一条语句应该为一条概括语句，并且使用被声明的名字作为开头。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// Compile parses a regular expression and returns, if successful, a Regexp</span>
+<span class="c">// object that can be used to match against text.</span>
+<span class="k">func</span> <span class="n">Compile</span><span class="p">(</span><span class="n">str</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="n">regexp</span> <span class="o">*</span><span class="n">Regexp</span><span class="p">,</span> <span class="n">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</code></pre></div></div>
+
+<h1 id="命名">命名</h1>
+<p>使用短命名，长名字并不会自动使得事物更易读，文档注释会比格外长的名字更有用。</p>
+
+<h2 id="包名">包名</h2>
+<p>包名应该为小写单词，不要使用下划线或者混合大小写。</p>
+
+<h2 id="接口名">接口名</h2>
+<p>单个函数的接口名以”er”作为后缀，如Reader,Writer</p>
+
+<p>接口的实现则去掉“er”</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">type</span> <span class="n">Reader</span> <span class="k">interface</span> <span class="p">{</span>
+        <span class="n">Read</span><span class="p">(</span><span class="n">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="n">n</span> <span class="kt">int</span><span class="p">,</span> <span class="n">err</span> <span class="kt">error</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>两个函数的接口名综合两个函数名</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">WriteFlusher</span> <span class="k">interface</span> <span class="p">{</span>
+    <span class="n">Write</span><span class="p">([]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+    <span class="n">Flush</span><span class="p">()</span> <span class="kt">error</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>三个以上函数的接口名，类似于结构体名</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Car</span> <span class="k">interface</span> <span class="p">{</span>
+    <span class="n">Start</span><span class="p">([]</span><span class="kt">byte</span><span class="p">)</span> 
+    <span class="n">Stop</span><span class="p">()</span> <span class="kt">error</span>
+    <span class="n">Recover</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="混合大小写">混合大小写</h2>
+<h2 id="采用驼峰式命名">采用驼峰式命名</h2>
+
+<p>MixedCaps 大写开头，可导出
+mixedCaps 小写开头，不可导出</p>
+<h2 id="变量">变量</h2>
+<p>全局变量：驼峰式，结合是否可导出确定首字母大小写
+参数传递：驼峰式，小写字母开头
+局部变量：下划线形式</p>
+<h1 id="控制结构">控制结构</h1>
+<h2 id="if">if</h2>
+<p>if接受初始化语句，约定如下方式建立局部变量</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">file</span><span class="o">.</span><span class="n">Chmod</span><span class="p">(</span><span class="m">0664</span><span class="p">);</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">err</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="for">for</h2>
+<p>采用短声明建立局部变量</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">:=</span> <span class="m">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="m">10</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">i</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="range">range</h2>
+<p>如果只需要第一项（key），就丢弃第二个：</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">key</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">m</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">expired</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nb">delete</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>如果只需要第二项，则把第一项置为下划线</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">:=</span> <span class="m">0</span>
+<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">array</span> <span class="p">{</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">value</span>
+<span class="p">}</span>
+<span class="k">return</span>
+</code></pre></div></div>
+
+<h2 id="尽早return">尽早return</h2>
+<p>一旦有错误发生，马上返回</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">err</span>
+<span class="p">}</span>
+<span class="n">d</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">f</span><span class="o">.</span><span class="n">Stat</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">err</span>
+<span class="p">}</span>
+<span class="n">codeUsing</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+</code></pre></div></div>
+<p>这样也有助于减小缩进。</p>
+
+<h1 id="函数必须">函数（必须）</h1>
+<h2 id="函数采用命名的多值返回">函数采用命名的多值返回</h2>
+<h2 id="传入变量和返回变量以小写字母开头">传入变量和返回变量以小写字母开头</h2>
+<p>func nextInt(b []byte, pos int) (value, nextPos int) {
+在godoc生成的文档中，带有返回值的函数声明更利于理解</p>
+<h1 id="错误处理">错误处理</h1>
+<h2 id="error作为函数的值返回必须对error进行处理">error作为函数的值返回,必须对error进行处理</h2>
+<h2 id="错误描述如果是英文必须为小写不需要标点结尾">错误描述如果是英文必须为小写，不需要标点结尾</h2>
+<h2 id="采用独立的错误流进行处理">采用独立的错误流进行处理</h2>
+<p>不要采用这种方式</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+        <span class="c">// error handling</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="c">// normal code</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>而要采用下面的方式</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+        <span class="c">// error handling</span>
+        <span class="k">return</span> <span class="c">// or continue, etc.</span>
+    <span class="p">}</span>
+    <span class="c">// normal code</span>
+</code></pre></div></div>
+
+<p>如果返回值需要初始化，则采用下面的方式</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">f</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+    <span class="c">// error handling</span>
+    <span class="k">return</span>
+<span class="p">}</span>
+<span class="c">// use x</span>
+<span class="nb">panic</span>
+</code></pre></div></div>
+
+<p>尽量不要使用panic，除非你知道你在做什么</p>
+<h1 id="import">import</h1>
+<p>对import的包进行分组管理，而且标准库作为第一组</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+    <span class="s">"hash/adler32"</span>
+    <span class="s">"os"</span>
+
+    <span class="s">"appengine/user"</span>
+    <span class="s">"appengine/foo"</span>
+
+    <span class="s">"code.google.com/p/x/y"</span>
+    <span class="s">"github.com/foo/bar"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>goimports实现了自动格式化</p>
+
+<h1 id="缩写">缩写</h1>
+<p>采用全部大写或者全部小写来表示缩写单词
+比如对于url这个单词，不要使用<code class="language-plaintext highlighter-rouge">UrlPony</code>而要使用<code class="language-plaintext highlighter-rouge">urlPony</code> 或者<code class="language-plaintext highlighter-rouge">URLPony</code>.</p>
+<h1 id="参数传递">参数传递</h1>
+<p>对于少量数据，不要传递指针
+对于大量数据的struct可以考虑使用指针
+传入参数是map，slice，chan不要传递指针
+因为map，slice，chan是引用类型，不需要传递指针的指针</p>
+
+<p>接受者名统一采用单字母’p’而不是this，me或者self</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+    <span class="k">type</span> <span class="n">T</span> <span class="k">struct</span><span class="p">{}</span> 
+
+    <span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">T</span><span class="p">)</span><span class="n">Get</span><span class="p">(){}</span>
+</code></pre></div></div>
+
+<h1 id="类型">类型</h1>
+<p>对于go初学者，接受者的类型如果不清楚，统一采用指针型</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (p *T)Get(){}
+</code></pre></div></div>
+<p>而不是
+<code class="language-plaintext highlighter-rouge">func (p T)Get(){} </code><br />
+在某些情况下，出于性能的考虑，或者类型本来就是引用类型，有一些特例</p>
+
+<p>如果接收者是map,slice或者chan，不要用指针传递</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">//Map</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+<span class="p">)</span>
+
+<span class="k">type</span> <span class="n">mp</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="n">mp</span><span class="p">)</span> <span class="n">Set</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">m</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="s">"k"</span><span class="p">,</span> <span class="s">"v"</span><span class="p">)</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="c">//Channel</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+<span class="p">)</span>
+
+<span class="k">type</span> <span class="n">ch</span> <span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="n">ch</span><span class="p">)</span> <span class="n">Push</span><span class="p">(</span><span class="n">i</span> <span class="k">interface</span><span class="p">{})</span> <span class="p">{</span>
+    <span class="n">c</span> <span class="o">&lt;-</span> <span class="n">i</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="n">ch</span><span class="p">)</span> <span class="n">Pop</span><span class="p">()</span> <span class="k">interface</span><span class="p">{}</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">&lt;-</span><span class="n">c</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Push</span><span class="p">(</span><span class="s">"i"</span><span class="p">)</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">Pop</span><span class="p">())</span>
+<span class="p">}</span>
+
+
+</code></pre></div></div>
+
+<p>如果需要对slice进行修改，通过返回值的方式重新赋值</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">//Slice</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+<span class="p">)</span>
+
+<span class="k">type</span> <span class="n">slice</span> <span class="p">[]</span><span class="kt">byte</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">s</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="n">slice</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">addOne</span><span class="p">(</span><span class="m">42</span><span class="p">)</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">s</span> <span class="n">slice</span><span class="p">)</span> <span class="n">addOne</span><span class="p">(</span><span class="n">b</span> <span class="kt">byte</span><span class="p">)</span> <span class="p">[]</span><span class="kt">byte</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">append</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>如果接收者是含有sync.Mutex或者类似同步字段的结构体，必须使用指针传递避免复制</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>package main
+
+import (
+    "sync"
+)
+
+type T struct {
+    m sync.Mutex
+}
+
+func (t *T) lock() {
+    t.m.Lock()
+}
+
+/*
+Wrong !!!
+func (t T) lock() {
+    t.m.Lock()
+}
+*/
+
+func main() {
+    t := new(T)
+    t.lock()
+}
+
+</code></pre></div></div>
+
+<p>如果接收者是大的结构体或者数组，使用指针传递会更有效率。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+<span class="p">)</span>
+
+<span class="k">type</span> <span class="n">T</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">data</span> <span class="p">[</span><span class="m">1024</span><span class="p">]</span><span class="kt">byte</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">t</span> <span class="o">*</span><span class="n">T</span><span class="p">)</span> <span class="n">Get</span><span class="p">()</span> <span class="kt">byte</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="m">0</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">t</span> <span class="o">:=</span> <span class="nb">new</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">Get</span><span class="p">())</span>
+<span class="p">}</span>
+</code></pre></div></div>
+

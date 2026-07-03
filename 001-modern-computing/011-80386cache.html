@@ -1,0 +1,186 @@
+<h1 id="80386的缓存">80386的缓存</h1>
+
+<p>大家都知道缓存是用来解决CPU与内存速度不匹配的问题的。80386是x86计算机中第一个配备了缓存的CPU.</p>
+
+<h1 id="cpu与内存速度的gap">CPU与内存速度的GAP</h1>
+
+<p>首先我们来看看这个GAP是否存在，以及是什么时候才开始存在的。</p>
+
+<p>下面我们列一下8086、80286、80386的主频以及使用的内存性能。以下是在网上找到的两个表，分别对应各年代CPU的主频和DRAM的访存时间。来源:http://www.qdpma.com/CBO/InMemory.html</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Year</th>
+      <th style="text-align: left">DRAM</th>
+      <th style="text-align: left">Density</th>
+      <th style="text-align: left">tRAC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">1971</td>
+      <td style="text-align: left">Intel 1103</td>
+      <td style="text-align: left">1K</td>
+      <td style="text-align: left">300ns</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1973</td>
+      <td style="text-align: left">TI TMS403</td>
+      <td style="text-align: left">4K</td>
+      <td style="text-align: left">?</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1977</td>
+      <td style="text-align: left">Mostek MK4116</td>
+      <td style="text-align: left">16K</td>
+      <td style="text-align: left">250ns</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1980</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">64K</td>
+      <td style="text-align: left">200ns</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1983</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">256K</td>
+      <td style="text-align: left">150ns</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1986</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">1M</td>
+      <td style="text-align: left">?</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1989</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">4M</td>
+      <td style="text-align: left">80ns</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1992</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">16M</td>
+      <td style="text-align: left">?</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">1995</td>
+      <td style="text-align: left">?</td>
+      <td style="text-align: left">64M</td>
+      <td style="text-align: left">?</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>DRAM访问时间表</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left"> </th>
+      <th style="text-align: left">MHz</th>
+      <th style="text-align: left">MIPS</th>
+      <th style="text-align: left">transistors</th>
+      <th style="text-align: left">process</th>
+      <th style="text-align: left">Year</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Intel 4004</td>
+      <td style="text-align: left">0.740</td>
+      <td style="text-align: left">0.07</td>
+      <td style="text-align: left">2,300</td>
+      <td style="text-align: left">10µm</td>
+      <td style="text-align: left">1971</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 8080</td>
+      <td style="text-align: left">2</td>
+      <td style="text-align: left">0.29</td>
+      <td style="text-align: left">6,000</td>
+      <td style="text-align: left">6µm</td>
+      <td style="text-align: left">1974</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 8086</td>
+      <td style="text-align: left">5 8</td>
+      <td style="text-align: left">0.33 0.66</td>
+      <td style="text-align: left">29,000</td>
+      <td style="text-align: left">3µm</td>
+      <td style="text-align: left">1978</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 80286</td>
+      <td style="text-align: left">6 12.5</td>
+      <td style="text-align: left">0.9 2.66</td>
+      <td style="text-align: left">134,000</td>
+      <td style="text-align: left">1.5µm</td>
+      <td style="text-align: left">1982</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 80386DX</td>
+      <td style="text-align: left">16 33</td>
+      <td style="text-align: left">5 9.9</td>
+      <td style="text-align: left">275,000</td>
+      <td style="text-align: left">1µm</td>
+      <td style="text-align: left">1985 1989</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 80486DX</td>
+      <td style="text-align: left">25 50</td>
+      <td style="text-align: left">20 41</td>
+      <td style="text-align: left">1.2M</td>
+      <td style="text-align: left">1µm 0.8µm</td>
+      <td style="text-align: left">1989 1991</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel 80486DX4</td>
+      <td style="text-align: left">75 100</td>
+      <td style="text-align: left">53 70.7</td>
+      <td style="text-align: left">1.6M</td>
+      <td style="text-align: left">0.6µm</td>
+      <td style="text-align: left">1994</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel Pentium (P5)</td>
+      <td style="text-align: left">60 66</td>
+      <td style="text-align: left">100 112</td>
+      <td style="text-align: left">3.1M</td>
+      <td style="text-align: left">0.8µm</td>
+      <td style="text-align: left">1993</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel Pentium (P54)</td>
+      <td style="text-align: left">90 100</td>
+      <td style="text-align: left">149.8 166.3</td>
+      <td style="text-align: left">3.2M</td>
+      <td style="text-align: left">0.6µm</td>
+      <td style="text-align: left">1994</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Intel Pentium (P54CS)</td>
+      <td style="text-align: left">133 166</td>
+      <td style="text-align: left">218.9 247</td>
+      <td style="text-align: left">3.3M</td>
+      <td style="text-align: left">0.35µm</td>
+      <td style="text-align: left">1995 1996</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CPU主频变化表</p>
+
+<p>从表中可以看出，在80386发布的年代，内存的访存时间至少是大于80ns的，我们粗算一下的话，算为100ns，则一秒访存次数最多也就达到10M次，而80386的主频最高达到33MHz, 如果实时取指，内存已经达不到当时的CPU的需求了。</p>
+
+<h1 id="80386的缓存-1">80386的缓存</h1>
+
+<p>由于当时内存的访问速度已经开始涉后于CPU的速度，用户要么花大价钱买最快的内存，要么接入一个外部Cache，要么采用直接用慢速度内存而使CPU的性能无法达到最大化。80386本来是想到L1 Cache放在CPU内部的，然后最终没有做成，转而支持外部Cache。80486做到了将L1 Cache(8KB)放到CPU内部，同时支持外接L2 Cache。</p>
+
+<p>直到Pentium时代，由于Pentium采用了双路执行的超标量结构，有2条并行整数流水线，需要对数据和指令进行双重的访问，为了使得这些访问互不干涉，于是出现了8K数据Cache和8K指令Cache，即L1分指令Cache和数据Cache, 并且可以同时读写，不过L2还是外部的，接着出现的Pentium Pro为了提高性能，把L2内嵌了，到此为止，就确定了现代缓存的基本模式了，并一直沿用至今。</p>
+
+<p>Cache能要发挥作用依赖于CPU访问数据时的所谓数据局布性，即如果你现在访部的是地址是A1，那么你有很大的概率接下来会访问A1前后的数据。因此，当CPU检测到你访问了A1上的数据之后，可以把A1附近的数据先取到Cache中来，由于Cache的访问速度很快，如果你下次访问的数据真的是已经取到Cache中的数据，那么这次访存就变得非常的快。</p>
+

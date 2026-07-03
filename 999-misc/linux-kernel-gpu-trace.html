@@ -1,0 +1,1072 @@
+<h1 id="代码">代码</h1>
+
+<p>https://github.com/facebookincubator/oculus-linux-kernel</p>
+
+<h1 id="mesa-中freedreno代码">mesa 中freedreno代码</h1>
+
+<pre><code class="language-plantuml">@startuml
+
+
+package ringbuffer &lt;&lt;Rectangle&gt;&gt; {
+    class msm_ringbuffer
+    class fd_ringbuffer
+}
+
+class msm_ringbuffer {
+    struct fd_ringbuffer base;
+    union u
+---
+    fd_pipe * pipe;
+    fd_bo * reloc_bos;//array
+    set * ring_set;
+---
+    fd_submit * submit
+    msm_cmd* cmds;//array
+---
+    msm_cmd *cmd;//cur
+    fd_bo * ring_bo;
+}
+
+class fd_ringbuffer {
+    struct fd_ringbuffer_funcs * funcs
+    ---
+    .funcs = ring_funcs
+}
+
+
+
+fd_ringbuffer &lt;|-- msm_ringbuffer
+
+interface ring_funcs {
+   .grow = msg_ringbuffer_grow,
+   .emit_reloc = msg_ringbuffer_emit_reloc,
+   .emit_reloc_ring = msg_ringbuffer_emit_reloc_ring,
+   .cmd_count = msg_ringbuffer_cmd_count,
+   .destroy = msg_ringbuffer_destroy,
+}
+
+fd_ringbuffer::ring_funcs .&gt; ring_funcs
+
+
+package pipe &lt;&lt;Rectangle&gt;&gt; {
+    class fd_pipe
+    class msm_pipe
+}
+
+class fd_pipe {
+ 
+    fd_pipe_id id;
+    uint32_t gpu_id;
+    int32_t refcnt;
+    struct fd_pipe_funcs * funcs;
+---
+    .funcs = legacy_funcs
+    fd_device *dev;
+}
+
+interface fd_pipe_funcs {
+    .ringbuffer_new_object = msm_ringbuffer_new_object,
+    .submit_new = msm_submit_new,
+    .get_param = msm_pipe_get_param,
+    .wait = msm_pipe_wait,
+    .destroy = msm_pipe_destroy,
+}
+
+fd_pipe::legacy_funcs .&gt; fd_pipe_funcs
+
+class msm_pipe {
+    fd_pipe base;
+    ---
+    	uint32_t pipe;
+	uint32_t gpu_id;
+	uint64_t gmem_base;
+	uint32_t gmem;
+	uint32_t chip_id;
+	uint32_t queue_id;
+	struct slab_parent_pool ring_pool;
+}
+
+fd_pipe &lt;|-- msm_pipe
+
+class fd_submit_funcs {
+	*new_ringbuffer
+	* **flush**
+	*destroy
+}
+
+class fd_submit {
+	fd_pipe *pipe;
+	fd_submit_funcs *funcs;
+}
+
+msm_ringbuffer::submit .&gt; fd_submit
+fd_submit::funcs .&gt; fd_submit_funcs
+
+package device &lt;&lt;Rectangle&gt;&gt; {
+    class fd_device
+    class msm_device
+}
+
+class fd_device {
+    int fd
+    fd_version version
+    int32_t refcnt
+    fd_device_funcs * funcs
+    fd_bo_cache bo_cache
+    fd_bo_cache ring_cache;
+}
+class msm_device {
+    fd_device base;
+    fd_bo_cache ring_cache;
+}
+
+fd_device &lt;|-- msm_device
+
+interface fd_device_funcs {
+    		.bo_new_handle = msm_bo_new_handle,
+		.bo_from_handle = msm_bo_from_handle,
+		.pipe_new = msm_pipe_new,
+		.destroy = msm_device_destroy,
+}
+
+fd_pipe::dev ..&gt; fd_device
+msm_ringbuffer::pipe .&gt; fd_pipe
+fd_device::funcs .&gt; fd_device_funcs
+
+package context &lt;&lt;Rectangle&gt;&gt; {
+    class pipe_context
+    class fd_context
+}
+pipe_context &lt;|-- fd_context
+class pipe_context {
+    pipe_screen * screen
+    void * priv
+    void * draw
+    u_upload_mgr *stream_uploader
+    u_upload_mgr *const_uploader
+  
+    -- func pointers --
+    *destroy
+    *draw_vbo
+    *set_vertex_buffers
+    *set_stream_out_targets
+    *blit
+    *clear
+    *create_surface
+    *surface_destroy
+    *buffer_subdata
+    *texture_subdata
+    *resource_commit
+    *launch_grid
+    a very long list
+}
+
+class fd_context {
+    pipe_context base;
+    list_head node;
+    -- uplink --
+    fd_device *dev;
+    fd_screen * screen;
+    fd_pipe * pipe;
+  
+    -- other contexts --
+    blitter_context *blitter
+    primconvert_context * primconvert
+  
+    -- current batch --
+    fd_batch * batch
+
+    -- function pointers --
+    emit_tile_init
+    emit_tile_prep
+    emit_tile_mem2gmem
+    emit_tile_rendergrep
+    emit_tile
+    emit_title_gmem2mem
+    emit_tile_fini
+    emit_sysmem_prep
+    emit_sysmem_fini
+
+    draw_vbo
+    clear
+    blit
+    ts_to_ns
+    launch_grid
+    *query*
+    -- end --
+  
+  
+}
+
+fd_context::dev .&gt; fd_device
+
+class cso_context {
+    pipe_context *pipe;
+}
+cso_context::pipe -left-&gt; pipe_context
+
+class st_context {
+    st_context_iface iface;
+    gl_context *ctx;
+    pipe_context *pipe;
+    draw_context *draw;
+
+    cso_context *cso_context
+}
+st_context::pipe -left-&gt; pipe_context
+
+
+class fd_batch {
+    	unsigned num_bins_per_pipe;
+	unsigned prim_strm_bits;
+	unsigned draw_strm_bits;
+	--draw pass cmdstream--
+	fd_ringbuffer *draw;
+	--binning pass cmdstream--
+	fd_ringbuffer *binning;
+	--tiling/gmem (IB0) cmdstream--
+	fd_ringbuffer *gmem;
+
+	--epilogue cmdstream--
+	fd_ringbuffer *epilogue;
+
+	// TODO maybe more generically 
+        //split out clear 
+        //and clear_binning rings?
+	fd_ringbuffer *lrz_clear;
+	fd_ringbuffer *tile_setup;
+	fd_ringbuffer *tile_fini;
+
+}
+fd_context::batch .left.&gt; fd_batch
+fd_batch .left.&gt; fd_ringbuffer
+
+
+@enduml
+</code></pre>
+
+<h2 id="draw的调用流程">draw的调用流程</h2>
+
+<pre><code class="language-plantuml">@startuml
+!theme bluegray
+app -&gt; _mesa_: _mesa_DrawElements
+_mesa_ -&gt; st: Driver-&gt;st_draw_vbo
+st -&gt; cso: cso_draw_vbo
+cso -&gt; pipe: draw_vbo(fd6_draw_vbo)
+pipe -&gt; fd_draw: draw_emit
+@enduml
+</code></pre>
+
+<h3 id="mesa-adreno-code">mesa adreno code</h3>
+
+<h4 id="类图">类图</h4>
+
+<pre><code class="language-plantuml">class pipe_screen {
+    context_create: fun*
+    ... fd6_context_create
+}
+class fd_screen
+fd_screen -up-|&gt; pipe_screen
+
+class pipe_context {
+    screen : pipe_screen *
+    ---
+    flush: func *
+    draw_vbo: func *
+}
+class fd_context {
+    base : pipe_context
+    screen : fd_screen *
+}
+class fd6_context {
+    base : fd_context
+}
+fd6_context -up-|&gt; fd_context
+fd_context -up-|&gt; pipe_context
+
+pipe_context .right.&gt; pipe_screen : ref
+fd_context .right.&gt; fd_screen : ref
+class st_context_iface {
+    flush : func *
+}
+class st_context {
+    iface: st_context_iface
+    ctx : gl_context*
+---
+    pipe: pipe_context*
+---
+    draw: draw_context*
+}
+st_context::pipe .right.&gt; pipe_context
+st_context -up-|&gt; st_context_iface
+
+class dd_function_table {
+    Flush : func *
+}
+class gl_context {
+    Driver : dd_function_table
+---
+    st : st_context *
+}
+gl_context::st .right.&gt; st_context
+gl_context::Driver .up.|&gt; dd_function_table
+</code></pre>
+
+<h4 id="时序图sequence">时序图(sequence)</h4>
+
+<p>整个flush的调用sequence如下图。下图即说明了各个类的调用seqeunce，也说明了flush的最终目标。
+flush的最终目标就是真正的tiled rendering，向kmd发送ringbuffer，包括一个binning pass和多个render pass。</p>
+
+<pre><code class="language-plantuml">app-&gt; context++: _mesa_flush
+context -&gt; st_context++: Driver.Flush=\nst_glFlush(gl_context*)
+context--
+st_context -&gt; st_context: st_flush(*st)
+st_context -&gt; pipe_context++: st-&gt;pipe-&gt;flush(pipe*)
+st_context--
+pipe_context -&gt; freedreno_context++ : .flush=\nfd_context_flush(pipe)
+pipe_context--
+freedreno_context -&gt; fd_batch++: fd_batch_flush\n(fd_batch*)
+freedreno_context--
+freedreno_context--
+fd_batch -&gt; fd_batch++: batch_flush(fd_batch*)
+fd_batch -&gt; freedreno_gmem++: fd_gmem_render_tiles\n(fd_batch*)
+fd_batch--
+fd_batch--
+freedreno_gmem -&gt; freedreno_gmem++: render_tiles\n(fd_batch*,gmem)
+freedreno_gmem -&gt; fd_context++: emit_tile_init
+fd_context -&gt; fd_context: fd6_emit_title_init
+fd_context -&gt; fd6_gmem: emit_binning_pass
+fd_context--
+
+loop foreach tile
+freedreno_gmem -&gt; fd_context: emit_tile_prep
+freedreno_gmem -&gt; fd_context: emit_tile_mem2gmem(unresolve)
+freedreno_gmem -&gt; fd_context: emit_tile_renderprep
+freedreno_gmem -&gt; fd_context: query_prepare_tile
+alt if has emit_tile
+freedreno_gmem -&gt; fd_context: **emit_tile**
+else
+freedreno_gmem -&gt; fd_context: emit_ib
+end alt
+freedreno_gmem -&gt; fd_context: emit_tile_gmem2mem
+end loop
+
+freedreno_gmem -&gt; fd_context: emit_tile_fini
+
+freedreno_gmem--
+freedreno_gmem -&gt; freedreno_gmem: flush_ring(fd_batch*)
+freedreno_gmem--
+</code></pre>
+
+<p>fd_batch是在freedreno_context阶段新创建的临时对象。
+fd_batch包含一次提交所需要的各种资源（纹理、buffer之类的）和相应的ringbuffer。
+ringbuffer包括 binning, draw, gmem，这三个是最主要的，分别用于binning stage、render stage和resolve stage。另外还有lrz_clear、tile_setup、tile_fini等非主要的ringbuffer。</p>
+
+<p>ringbuffer中draw是必须的。binning可能没有，即使有，它也是从draw创建出来的，因为它所需的所有命令和资源draw中都有，所以binning这个ringbuffer自己的内容很少，它会把draw接进来作为一个indirect buffer(IB)，再结合自己独有的一些状态设置，就可以提交给显卡做binning了。</p>
+
+<h4 id="ringbuffer及指令录制">ringbuffer及指令录制</h4>
+
+<p>ringbuffer本身真的只是一个ringbuffer:</p>
+
+<pre><code class="language-plantuml">class fd_ringbuffer {
+    uint32_t *cur, *end, *start; 
+   -- buffer的指针--
+   fd_ringbuffer_funcs funcs
+   -- buffer的操作--
+}
+</code></pre>
+
+<p>上一节讲到fd_batch及其draw, binning, gmem三个ringbuffer是在flush的时候创建的。其实说的不太对。它是在调用drawcall之前就要创建的。兴许这个flush在eglMakeCurrent的时候也会调用，所以可以保证draw call的时候有batch及ringbuffer存在。</p>
+
+<p>ringbuffer录制的大部分工作发生在drawcall里，主要是<code class="language-plaintext highlighter-rouge">fd6_draw_vbo</code>函数。<code class="language-plaintext highlighter-rouge">fd6_draw_vbo</code>会创建一个emit结构体，这个结构体基本是由ctx中绑定的各种当前对象（当前program及其vs,fs,gs，顶点缓冲区等）初始化的。然后<code class="language-plaintext highlighter-rouge">fd6_draw_vbo</code>调用<code class="language-plaintext highlighter-rouge">fd6_emit_state</code>函数，把这些状态写入到ringbuffer里。 所有fd6_emit_开头的函数都是往ringbuffer写入数据用的，它的第一个参数一般是一个ringbuffer。<code class="language-plaintext highlighter-rouge">fd6_emit_state</code>里各种DIRTY_XXX判断，是为了减少不必要的状态切换，如果某些状态没有变化，就不通过指令去更新它。</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="n">bool</span>
+<span class="nf">fd6_draw_vbo</span><span class="p">(</span><span class="k">struct</span> <span class="n">fd_context</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">pipe_draw_info</span> <span class="o">*</span><span class="n">info</span><span class="p">,</span>
+             <span class="kt">unsigned</span> <span class="n">index_offset</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">fd6_context</span> <span class="o">*</span><span class="n">fd6_ctx</span> <span class="o">=</span> <span class="n">fd6_context</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+	<span class="k">struct</span> <span class="n">ir3_shader</span> <span class="o">*</span><span class="n">gs</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">gs</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">fd6_emit</span> <span class="n">emit</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="p">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">vtx</span>  <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">vtx</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">key</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="p">.</span><span class="n">vs</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">vs</span><span class="p">,</span>
+			<span class="p">.</span><span class="n">gs</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">gs</span><span class="p">,</span>
+			<span class="p">.</span><span class="n">fs</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">fs</span><span class="p">,</span>
+			<span class="p">.</span><span class="n">key</span> <span class="o">=</span> <span class="p">{</span>
+				<span class="p">.</span><span class="n">color_two_side</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">light_twoside</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">vclamp_color</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">clamp_vertex_color</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">fclamp_color</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">clamp_fragment_color</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">rasterflat</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">flatshade</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">ucp_enables</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">clip_plane_enable</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">has_per_samp</span> <span class="o">=</span> <span class="p">(</span><span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">fsaturate</span> <span class="o">||</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">vsaturate</span><span class="p">),</span>
+				<span class="p">.</span><span class="n">vsaturate_s</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">vsaturate_s</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">vsaturate_t</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">vsaturate_t</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">vsaturate_r</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">vsaturate_r</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">fsaturate_s</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">fsaturate_s</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">fsaturate_t</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">fsaturate_t</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">fsaturate_r</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">fsaturate_r</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">layer_zero</span> <span class="o">=</span> <span class="o">!</span><span class="n">gs</span> <span class="o">||</span> <span class="o">!</span><span class="p">(</span><span class="n">gs</span><span class="o">-&gt;</span><span class="n">nir</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">.</span><span class="n">outputs_written</span> <span class="o">&amp;</span> <span class="n">VARYING_BIT_LAYER</span><span class="p">),</span>
+				<span class="p">.</span><span class="n">vsamples</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">tex</span><span class="p">[</span><span class="n">PIPE_SHADER_VERTEX</span><span class="p">].</span><span class="n">samples</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">fsamples</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">tex</span><span class="p">[</span><span class="n">PIPE_SHADER_FRAGMENT</span><span class="p">].</span><span class="n">samples</span><span class="p">,</span>
+				<span class="p">.</span><span class="n">sample_shading</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">min_samples</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span>
+				<span class="p">.</span><span class="n">msaa</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">framebuffer</span><span class="p">.</span><span class="n">samples</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span>
+			<span class="p">},</span>
+		<span class="p">},</span>
+		<span class="p">.</span><span class="n">rasterflat</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">flatshade</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">sprite_coord_enable</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">sprite_coord_enable</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">sprite_coord_mode</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">sprite_coord_mode</span><span class="p">,</span>
+		<span class="p">.</span><span class="n">primitive_restart</span> <span class="o">=</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">primitive_restart</span> <span class="o">&amp;&amp;</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">index_size</span><span class="p">,</span>
+	<span class="p">};</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">vs</span> <span class="o">&amp;&amp;</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">fs</span><span class="p">))</span>
+		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">mode</span> <span class="o">==</span> <span class="n">PIPE_PRIM_PATCHES</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">hs</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">hs</span><span class="p">;</span>
+		<span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">ds</span><span class="p">;</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">hs</span> <span class="o">&amp;&amp;</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">.</span><span class="n">ds</span><span class="p">))</span>
+			<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+		<span class="n">shader_info</span> <span class="o">*</span><span class="n">ds_info</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">ds</span><span class="o">-&gt;</span><span class="n">nir</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">;</span>
+		<span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">tessellation</span> <span class="o">=</span> <span class="n">ir3_tess_mode</span><span class="p">(</span><span class="n">ds_info</span><span class="o">-&gt;</span><span class="n">tess</span><span class="p">.</span><span class="n">primitive_mode</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">gs</span><span class="p">)</span>
+		<span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">has_gs</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">hs</span> <span class="o">||</span> <span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">ds</span> <span class="o">||</span> <span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">gs</span> <span class="o">||</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">indirect</span><span class="p">))</span>
+		<span class="n">fd6_vsc_update_sizes</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="p">,</span> <span class="n">info</span><span class="p">);</span>
+
+	<span class="n">fixup_shader_state</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">key</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_PROG</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">emit</span><span class="p">.</span><span class="n">prog</span> <span class="o">=</span> <span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">;</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">prog</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* bail if compile failed: */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fd6_ctx</span><span class="o">-&gt;</span><span class="n">prog</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+
+	<span class="n">fixup_draw_state</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">emit</span><span class="p">);</span>
+
+	<span class="n">emit</span><span class="p">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">dirty</span><span class="p">;</span>      <span class="cm">/* *after* fixup_shader_state() */</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">bs</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">bs</span><span class="p">;</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">vs</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">vs</span><span class="p">;</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">hs</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">hs</span><span class="p">;</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">ds</span><span class="p">;</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">gs</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">gs</span><span class="p">;</span>
+	<span class="n">emit</span><span class="p">.</span><span class="n">fs</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="o">&amp;</span><span class="n">emit</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">fs</span><span class="p">;</span>
+
+	<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stats</span><span class="p">.</span><span class="n">vs_regs</span> <span class="o">+=</span> <span class="n">ir3_shader_halfregs</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">vs</span><span class="p">);</span>
+	<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stats</span><span class="p">.</span><span class="n">hs_regs</span> <span class="o">+=</span> <span class="n">COND</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">hs</span><span class="p">,</span> <span class="n">ir3_shader_halfregs</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">hs</span><span class="p">));</span>
+	<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stats</span><span class="p">.</span><span class="n">ds_regs</span> <span class="o">+=</span> <span class="n">COND</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">ir3_shader_halfregs</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">ds</span><span class="p">));</span>
+	<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stats</span><span class="p">.</span><span class="n">gs_regs</span> <span class="o">+=</span> <span class="n">COND</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">gs</span><span class="p">,</span> <span class="n">ir3_shader_halfregs</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">gs</span><span class="p">));</span>
+	<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stats</span><span class="p">.</span><span class="n">fs_regs</span> <span class="o">+=</span> <span class="n">ir3_shader_halfregs</span><span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">fs</span><span class="p">);</span>
+
+	<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">draw</span><span class="p">;</span>
+
+	<span class="k">struct</span> <span class="n">CP_DRAW_INDX_OFFSET_0</span> <span class="n">draw0</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="p">.</span><span class="n">prim_type</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">primtypes</span><span class="p">[</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">mode</span><span class="p">],</span>
+			<span class="p">.</span><span class="n">vis_cull</span>  <span class="o">=</span> <span class="n">USE_VISIBILITY</span><span class="p">,</span>
+			<span class="p">.</span><span class="n">gs_enable</span> <span class="o">=</span> <span class="o">!!</span><span class="n">emit</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">gs</span><span class="p">,</span>
+	<span class="p">};</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">index_size</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">draw0</span><span class="p">.</span><span class="n">source_select</span> <span class="o">=</span> <span class="n">DI_SRC_SEL_DMA</span><span class="p">;</span>
+		<span class="n">draw0</span><span class="p">.</span><span class="n">index_size</span> <span class="o">=</span> <span class="n">fd4_size2indextype</span><span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">index_size</span><span class="p">);</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="n">draw0</span><span class="p">.</span><span class="n">source_select</span> <span class="o">=</span> <span class="n">DI_SRC_SEL_AUTO_INDEX</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">mode</span> <span class="o">==</span> <span class="n">PIPE_PRIM_PATCHES</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">shader_info</span> <span class="o">*</span><span class="n">ds_info</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">emit</span><span class="p">.</span><span class="n">ds</span><span class="o">-&gt;</span><span class="n">shader</span><span class="o">-&gt;</span><span class="n">nir</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">;</span>
+		<span class="kt">uint32_t</span> <span class="n">factor_stride</span><span class="p">;</span>
+
+		<span class="k">switch</span> <span class="p">(</span><span class="n">ds_info</span><span class="o">-&gt;</span><span class="n">tess</span><span class="p">.</span><span class="n">primitive_mode</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="n">GL_ISOLINES</span><span class="p">:</span>
+			<span class="n">draw0</span><span class="p">.</span><span class="n">patch_type</span> <span class="o">=</span> <span class="n">TESS_ISOLINES</span><span class="p">;</span>
+			<span class="n">factor_stride</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">case</span> <span class="n">GL_TRIANGLES</span><span class="p">:</span>
+			<span class="n">draw0</span><span class="p">.</span><span class="n">patch_type</span> <span class="o">=</span> <span class="n">TESS_TRIANGLES</span><span class="p">;</span>
+			<span class="n">factor_stride</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">case</span> <span class="n">GL_QUADS</span><span class="p">:</span>
+			<span class="n">draw0</span><span class="p">.</span><span class="n">patch_type</span> <span class="o">=</span> <span class="n">TESS_QUADS</span><span class="p">;</span>
+			<span class="n">factor_stride</span> <span class="o">=</span> <span class="mi">28</span><span class="p">;</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="nl">default:</span>
+			<span class="n">unreachable</span><span class="p">(</span><span class="s">"bad tessmode"</span><span class="p">);</span>
+		<span class="p">}</span>
+
+		<span class="n">draw0</span><span class="p">.</span><span class="n">prim_type</span> <span class="o">=</span> <span class="n">DI_PT_PATCHES0</span> <span class="o">+</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">vertices_per_patch</span><span class="p">;</span>
+		<span class="n">draw0</span><span class="p">.</span><span class="n">tess_enable</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tessellation</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tessparam_size</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tessparam_size</span><span class="p">,</span>
+				<span class="n">emit</span><span class="p">.</span><span class="n">hs</span><span class="o">-&gt;</span><span class="n">output_size</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">);</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tessfactor_size</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tessfactor_size</span><span class="p">,</span>
+				<span class="n">factor_stride</span> <span class="o">*</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">);</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tess_addrs_constobj</span><span class="p">)</span> <span class="p">{</span>
+			<span class="cm">/* Reserve space for the bo address - we'll write them later in
+			 * setup_tess_buffers().  We need 2 bo address, but indirect
+			 * constant upload needs at least 4 vec4s.
+			 */</span>
+			<span class="kt">unsigned</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">16</span><span class="p">;</span>
+
+			<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tess_addrs_constobj</span> <span class="o">=</span> <span class="n">fd_submit_new_ringbuffer</span><span class="p">(</span>
+				<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">FD_RINGBUFFER_STREAMING</span><span class="p">);</span>
+
+			<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">tess_addrs_constobj</span><span class="o">-&gt;</span><span class="n">cur</span> <span class="o">+=</span> <span class="n">size</span><span class="p">;</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="kt">uint32_t</span> <span class="n">index_start</span> <span class="o">=</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">index_size</span> <span class="o">?</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">index_bias</span> <span class="o">:</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">dirty</span> <span class="o">||</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">index_start</span> <span class="o">!=</span> <span class="n">index_start</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_VFD_INDEX_OFFSET</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">index_start</span><span class="p">);</span> <span class="cm">/* VFD_INDEX_OFFSET */</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">index_start</span> <span class="o">=</span> <span class="n">index_start</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">dirty</span> <span class="o">||</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">instance_start</span> <span class="o">!=</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">start_instance</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_VFD_INSTANCE_START_OFFSET</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">start_instance</span><span class="p">);</span> <span class="cm">/* VFD_INSTANCE_START_OFFSET */</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">instance_start</span> <span class="o">=</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">start_instance</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="kt">uint32_t</span> <span class="n">restart_index</span> <span class="o">=</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">primitive_restart</span> <span class="o">?</span> <span class="n">info</span><span class="o">-&gt;</span><span class="n">restart_index</span> <span class="o">:</span> <span class="mh">0xffffffff</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">dirty</span> <span class="o">||</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">restart_index</span> <span class="o">!=</span> <span class="n">restart_index</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_PC_RESTART_INDEX</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">restart_index</span><span class="p">);</span> <span class="cm">/* PC_RESTART_INDEX */</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">last</span><span class="p">.</span><span class="n">restart_index</span> <span class="o">=</span> <span class="n">restart_index</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">fd6_emit_state</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">emit</span><span class="p">);</span>
+
+	<span class="cm">/* for debug after a lock up, write a unique counter value
+	 * to scratch7 for each draw, to make it easier to match up
+	 * register dumps to cmdstream.  The combination of IB
+	 * (scratch6) and DRAW is enough to "triangulate" the
+	 * particular draw that caused lockup.
+	 */</span>
+	<span class="n">emit_marker6</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="mi">7</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">indirect</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">draw_emit_indirect</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">draw0</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">index_offset</span><span class="p">);</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="n">draw_emit</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">draw0</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">index_offset</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="n">emit_marker6</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="mi">7</span><span class="p">);</span>
+	<span class="n">fd_reset_wfi</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">streamout_mask</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">draw</span><span class="p">;</span>
+
+		<span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">PIPE_MAX_SO_BUFFERS</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="p">.</span><span class="n">streamout_mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">))</span> <span class="p">{</span>
+				<span class="n">fd6_event_write</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">FLUSH_SO_0</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="n">fd_context_all_clean</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>另一个函数<code class="language-plaintext highlighter-rouge">fd6_emit_state</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span>
+<span class="nf">fd6_emit_state</span><span class="p">(</span><span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span><span class="p">,</span> <span class="k">struct</span> <span class="n">fd6_emit</span> <span class="o">*</span><span class="n">emit</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">fd_context</span> <span class="o">*</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">ctx</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">pipe_framebuffer_state</span> <span class="o">*</span><span class="n">pfb</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">framebuffer</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">fd6_program_state</span> <span class="o">*</span><span class="n">prog</span> <span class="o">=</span> <span class="n">fd6_emit_get_prog</span><span class="p">(</span><span class="n">emit</span><span class="p">);</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">ir3_shader_variant</span> <span class="o">*</span><span class="n">vs</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">vs</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">ir3_shader_variant</span> <span class="o">*</span><span class="n">hs</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">hs</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">ir3_shader_variant</span> <span class="o">*</span><span class="n">ds</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">ds</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">ir3_shader_variant</span> <span class="o">*</span><span class="n">gs</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">gs</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">ir3_shader_variant</span> <span class="o">*</span><span class="n">fs</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">fs</span><span class="p">;</span>
+	<span class="k">const</span> <span class="k">enum</span> <span class="n">fd_dirty_3d_state</span> <span class="n">dirty</span> <span class="o">=</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">dirty</span><span class="p">;</span>
+	<span class="n">bool</span> <span class="n">needs_border</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+	<span class="n">emit_marker6</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+
+	<span class="cm">/* NOTE: we track fb_read differently than _BLEND_ENABLED since
+	 * we might at some point decide to do sysmem in some cases when
+	 * blend is enabled:
+	 */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">fs</span><span class="o">-&gt;</span><span class="n">fb_read</span><span class="p">)</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">gmem_reason</span> <span class="o">|=</span> <span class="n">FD_GMEM_FB_READ</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="o">-&gt;</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_VTXSTATE</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd6_vertex_stateobj</span> <span class="o">*</span><span class="n">vtx</span> <span class="o">=</span> <span class="n">fd6_vertex_stateobj</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">vtx</span><span class="p">.</span><span class="n">vtx</span><span class="p">);</span>
+
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">vtx</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">,</span> <span class="n">FD6_GROUP_VTXSTATE</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="o">-&gt;</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_VTXBUF</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">state</span><span class="p">;</span>
+
+		<span class="n">state</span> <span class="o">=</span> <span class="n">build_vbo_state</span><span class="p">(</span><span class="n">emit</span><span class="p">);</span>
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">FD6_GROUP_VBO</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_ZSA</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd6_zsa_stateobj</span> <span class="o">*</span><span class="n">zsa</span> <span class="o">=</span> <span class="n">fd6_zsa_stateobj</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">zsa</span><span class="p">);</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">util_format_is_pure_integer</span><span class="p">(</span><span class="n">pipe_surface_format</span><span class="p">(</span><span class="n">pfb</span><span class="o">-&gt;</span><span class="n">cbufs</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+			<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">zsa</span><span class="o">-&gt;</span><span class="n">stateobj_no_alpha</span><span class="p">,</span> <span class="n">FD6_GROUP_ZSA</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+		<span class="k">else</span>
+			<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">zsa</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">,</span> <span class="n">FD6_GROUP_ZSA</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">FD_DIRTY_ZSA</span> <span class="o">|</span> <span class="n">FD_DIRTY_BLEND</span> <span class="o">|</span> <span class="n">FD_DIRTY_PROG</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">state</span><span class="p">;</span>
+
+		<span class="n">state</span> <span class="o">=</span> <span class="n">build_lrz</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="p">{</span>
+			<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">FD6_GROUP_LRZ</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+		<span class="p">}</span>
+
+		<span class="n">state</span> <span class="o">=</span> <span class="n">build_lrz</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="p">{</span>
+			<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span>
+					<span class="n">FD6_GROUP_LRZ_BINNING</span><span class="p">,</span> <span class="n">CP_SET_DRAW_STATE__0_BINNING</span><span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_STENCIL_REF</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">pipe_stencil_ref</span> <span class="o">*</span><span class="n">sr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">stencil_ref</span><span class="p">;</span>
+
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_RB_STENCILREF</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">A6XX_RB_STENCILREF_REF</span><span class="p">(</span><span class="n">sr</span><span class="o">-&gt;</span><span class="n">ref_value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">|</span>
+				<span class="n">A6XX_RB_STENCILREF_BFREF</span><span class="p">(</span><span class="n">sr</span><span class="o">-&gt;</span><span class="n">ref_value</span><span class="p">[</span><span class="mi">1</span><span class="p">]));</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* NOTE: scissor enabled bit is part of rasterizer state, but
+	 * fd_rasterizer_state_bind() will mark scissor dirty if needed:
+	 */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_SCISSOR</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span> <span class="o">=</span> <span class="n">fd_submit_new_ringbuffer</span><span class="p">(</span>
+				<span class="n">emit</span><span class="o">-&gt;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span> <span class="n">FD_RINGBUFFER_STREAMING</span><span class="p">);</span>
+		<span class="k">struct</span> <span class="n">pipe_scissor_state</span> <span class="o">*</span><span class="n">scissor</span> <span class="o">=</span> <span class="n">fd_context_get_scissor</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+
+		<span class="n">OUT_REG</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span>
+				<span class="n">A6XX_GRAS_SC_SCREEN_SCISSOR_TL</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">minx</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">miny</span>
+				<span class="p">),</span>
+				<span class="n">A6XX_GRAS_SC_SCREEN_SCISSOR_BR</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxy</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+				<span class="p">)</span>
+			<span class="p">);</span>
+
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">FD6_GROUP_SCISSOR</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">minx</span> <span class="o">=</span> <span class="n">MIN2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">minx</span><span class="p">,</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">minx</span><span class="p">);</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">miny</span> <span class="o">=</span> <span class="n">MIN2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">miny</span><span class="p">,</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">miny</span><span class="p">);</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">maxx</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">maxx</span><span class="p">,</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxx</span><span class="p">);</span>
+		<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">maxy</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">max_scissor</span><span class="p">.</span><span class="n">maxy</span><span class="p">,</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxy</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_VIEWPORT</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">pipe_scissor_state</span> <span class="o">*</span><span class="n">scissor</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport_scissor</span><span class="p">;</span>
+
+		<span class="n">OUT_REG</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_XOFFSET</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">translate</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_XSCALE</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_YOFFSET</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">translate</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_YSCALE</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_ZOFFSET</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">translate</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+				<span class="n">A6XX_GRAS_CL_VPORT_ZSCALE</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+			<span class="p">);</span>
+
+		<span class="n">OUT_REG</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span>
+				<span class="n">A6XX_GRAS_SC_VIEWPORT_SCISSOR_TL</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">minx</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">scissor</span><span class="o">-&gt;</span><span class="n">miny</span>
+				<span class="p">),</span>
+				<span class="n">A6XX_GRAS_SC_VIEWPORT_SCISSOR_BR</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">MAX2</span><span class="p">(</span><span class="n">scissor</span><span class="o">-&gt;</span><span class="n">maxy</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+				<span class="p">)</span>
+			<span class="p">);</span>
+
+		<span class="kt">unsigned</span> <span class="n">guardband_x</span> <span class="o">=</span>
+			<span class="n">fd_calc_guardband</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">translate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+							  <span class="nb">false</span><span class="p">);</span>
+		<span class="kt">unsigned</span> <span class="n">guardband_y</span> <span class="o">=</span>
+			<span class="n">fd_calc_guardband</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">translate</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">viewport</span><span class="p">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+							  <span class="nb">false</span><span class="p">);</span>
+
+		<span class="n">OUT_REG</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">A6XX_GRAS_CL_GUARDBAND_CLIP_ADJ</span><span class="p">(</span>
+					<span class="p">.</span><span class="n">horz</span> <span class="o">=</span> <span class="n">guardband_x</span><span class="p">,</span>
+					<span class="p">.</span><span class="n">vert</span> <span class="o">=</span> <span class="n">guardband_y</span>
+				<span class="p">)</span>
+			<span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_PROG</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">prog</span><span class="o">-&gt;</span><span class="n">config_stateobj</span><span class="p">,</span> <span class="n">FD6_GROUP_PROG_CONFIG</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">prog</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">,</span> <span class="n">FD6_GROUP_PROG</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">prog</span><span class="o">-&gt;</span><span class="n">binning_stateobj</span><span class="p">,</span>
+				<span class="n">FD6_GROUP_PROG_BINNING</span><span class="p">,</span> <span class="n">CP_SET_DRAW_STATE__0_BINNING</span><span class="p">);</span>
+
+		<span class="cm">/* emit remaining streaming program state, ie. what depends on
+		 * other emit state, so cannot be pre-baked.
+		 */</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">streaming</span> <span class="o">=</span> <span class="n">fd6_program_interp_state</span><span class="p">(</span><span class="n">emit</span><span class="p">);</span>
+
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">streaming</span><span class="p">,</span> <span class="n">FD6_GROUP_PROG_INTERP</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_RASTERIZER</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">stateobj</span> <span class="o">=</span>
+			<span class="n">fd6_rasterizer_state</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">primitive_restart</span><span class="p">);</span>
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">stateobj</span><span class="p">,</span>
+						   <span class="n">FD6_GROUP_RASTERIZER</span><span class="p">,</span> <span class="n">ENABLE_ALL</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">FD_DIRTY_FRAMEBUFFER</span> <span class="o">|</span> <span class="n">FD_DIRTY_RASTERIZER_DISCARD</span> <span class="o">|</span> <span class="n">FD_DIRTY_PROG</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span> <span class="o">=</span> <span class="n">fd_submit_new_ringbuffer</span><span class="p">(</span>
+				<span class="n">emit</span><span class="o">-&gt;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">FD_RINGBUFFER_STREAMING</span><span class="p">);</span>
+
+		<span class="kt">unsigned</span> <span class="n">nr</span> <span class="o">=</span> <span class="n">pfb</span><span class="o">-&gt;</span><span class="n">nr_cbufs</span><span class="p">;</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">rasterizer</span><span class="o">-&gt;</span><span class="n">rasterizer_discard</span><span class="p">)</span>
+			<span class="n">nr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_RB_FS_OUTPUT_CNTL0</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">COND</span><span class="p">(</span><span class="n">fs</span><span class="o">-&gt;</span><span class="n">writes_pos</span><span class="p">,</span> <span class="n">A6XX_RB_FS_OUTPUT_CNTL0_FRAG_WRITES_Z</span><span class="p">)</span> <span class="o">|</span>
+				<span class="n">COND</span><span class="p">(</span><span class="n">fs</span><span class="o">-&gt;</span><span class="n">writes_smask</span> <span class="o">&amp;&amp;</span> <span class="n">pfb</span><span class="o">-&gt;</span><span class="n">samples</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+						<span class="n">A6XX_RB_FS_OUTPUT_CNTL0_FRAG_WRITES_SAMPMASK</span><span class="p">));</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">A6XX_RB_FS_OUTPUT_CNTL1_MRT</span><span class="p">(</span><span class="n">nr</span><span class="p">));</span>
+
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">REG_A6XX_SP_FS_OUTPUT_CNTL1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">A6XX_SP_FS_OUTPUT_CNTL1_MRT</span><span class="p">(</span><span class="n">nr</span><span class="p">));</span>
+
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">FD6_GROUP_PROG_FB_RAST</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="n">fd6_emit_consts</span><span class="p">(</span><span class="n">emit</span><span class="p">);</span>
+
+	<span class="k">struct</span> <span class="n">ir3_stream_output_info</span> <span class="o">*</span><span class="n">info</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">fd6_last_shader</span><span class="p">(</span><span class="n">prog</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">shader</span><span class="o">-&gt;</span><span class="n">stream_output</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">info</span><span class="o">-&gt;</span><span class="n">num_outputs</span><span class="p">)</span>
+		<span class="n">fd6_emit_streamout</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">info</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">FD_DIRTY_BLEND</span> <span class="o">|</span> <span class="n">FD_DIRTY_SAMPLE_MASK</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd6_blend_variant</span> <span class="o">*</span><span class="n">blend</span> <span class="o">=</span> <span class="n">fd6_blend_variant</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">blend</span><span class="p">,</span>
+				<span class="n">pfb</span><span class="o">-&gt;</span><span class="n">samples</span><span class="p">,</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">sample_mask</span><span class="p">);</span>
+		<span class="n">fd6_emit_add_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">blend</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">,</span> <span class="n">FD6_GROUP_BLEND</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">dirty</span> <span class="o">&amp;</span> <span class="n">FD_DIRTY_BLEND_COLOR</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">pipe_blend_color</span> <span class="o">*</span><span class="n">bcolor</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">blend_color</span><span class="p">;</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">ring</span> <span class="o">=</span> <span class="n">fd_submit_new_ringbuffer</span><span class="p">(</span>
+				<span class="n">emit</span><span class="o">-&gt;</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">,</span> <span class="mi">5</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span> <span class="n">FD_RINGBUFFER_STREAMING</span><span class="p">);</span>
+
+		<span class="n">OUT_REG</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span>
+				<span class="n">A6XX_RB_BLEND_RED_F32</span><span class="p">(</span><span class="n">bcolor</span><span class="o">-&gt;</span><span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+				<span class="n">A6XX_RB_BLEND_GREEN_F32</span><span class="p">(</span><span class="n">bcolor</span><span class="o">-&gt;</span><span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+				<span class="n">A6XX_RB_BLEND_BLUE_F32</span><span class="p">(</span><span class="n">bcolor</span><span class="o">-&gt;</span><span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+				<span class="n">A6XX_RB_BLEND_ALPHA_F32</span><span class="p">(</span><span class="n">bcolor</span><span class="o">-&gt;</span><span class="n">color</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+			<span class="p">);</span>
+
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">FD6_GROUP_BLEND_COLOR</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="n">needs_border</span> <span class="o">|=</span> <span class="n">fd6_emit_combined_textures</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">PIPE_SHADER_VERTEX</span><span class="p">,</span> <span class="n">vs</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">hs</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">needs_border</span> <span class="o">|=</span> <span class="n">fd6_emit_combined_textures</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">PIPE_SHADER_TESS_CTRL</span><span class="p">,</span> <span class="n">hs</span><span class="p">);</span>
+		<span class="n">needs_border</span> <span class="o">|=</span> <span class="n">fd6_emit_combined_textures</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">PIPE_SHADER_TESS_EVAL</span><span class="p">,</span> <span class="n">ds</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">gs</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">needs_border</span> <span class="o">|=</span> <span class="n">fd6_emit_combined_textures</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">PIPE_SHADER_GEOMETRY</span><span class="p">,</span> <span class="n">gs</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">needs_border</span> <span class="o">|=</span> <span class="n">fd6_emit_combined_textures</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">emit</span><span class="p">,</span> <span class="n">PIPE_SHADER_FRAGMENT</span><span class="p">,</span> <span class="n">fs</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">needs_border</span><span class="p">)</span>
+		<span class="n">emit_border_color</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">ring</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">hs</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">debug_assert</span><span class="p">(</span><span class="n">ir3_shader_nibo</span><span class="p">(</span><span class="n">hs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+		<span class="n">debug_assert</span><span class="p">(</span><span class="n">ir3_shader_nibo</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">gs</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">debug_assert</span><span class="p">(</span><span class="n">ir3_shader_nibo</span><span class="p">(</span><span class="n">gs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+	<span class="p">}</span>
+
+<span class="cp">#define DIRTY_IBO (FD_DIRTY_SHADER_SSBO | FD_DIRTY_SHADER_IMAGE | \
+				   FD_DIRTY_SHADER_PROG)
+</span>	<span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">dirty_shader</span><span class="p">[</span><span class="n">PIPE_SHADER_FRAGMENT</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">DIRTY_IBO</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">state</span> <span class="o">=</span>
+			<span class="n">fd6_build_ibo_state</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">PIPE_SHADER_FRAGMENT</span><span class="p">);</span>
+		<span class="k">struct</span> <span class="n">fd_ringbuffer</span> <span class="o">*</span><span class="n">obj</span> <span class="o">=</span> <span class="n">fd_submit_new_ringbuffer</span><span class="p">(</span>
+			<span class="n">ctx</span><span class="o">-&gt;</span><span class="n">batch</span><span class="o">-&gt;</span><span class="n">submit</span><span class="p">,</span> <span class="mh">0x100</span><span class="p">,</span> <span class="n">FD_RINGBUFFER_STREAMING</span><span class="p">);</span>
+
+		<span class="n">OUT_PKT7</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">CP_LOAD_STATE6</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">CP_LOAD_STATE6_0_DST_OFF</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+			<span class="n">CP_LOAD_STATE6_0_STATE_TYPE</span><span class="p">(</span><span class="n">ST6_SHADER</span><span class="p">)</span> <span class="o">|</span>
+			<span class="n">CP_LOAD_STATE6_0_STATE_SRC</span><span class="p">(</span><span class="n">SS6_INDIRECT</span><span class="p">)</span> <span class="o">|</span>
+			<span class="n">CP_LOAD_STATE6_0_STATE_BLOCK</span><span class="p">(</span><span class="n">SB6_IBO</span><span class="p">)</span> <span class="o">|</span>
+			<span class="n">CP_LOAD_STATE6_0_NUM_UNIT</span><span class="p">(</span><span class="n">ir3_shader_nibo</span><span class="p">(</span><span class="n">fs</span><span class="p">)));</span>
+		<span class="n">OUT_RB</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">state</span><span class="p">);</span>
+
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">REG_A6XX_SP_IBO_LO</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+		<span class="n">OUT_RB</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">state</span><span class="p">);</span>
+
+		<span class="cm">/* TODO if we used CP_SET_DRAW_STATE for compute shaders, we could
+		 * de-duplicate this from program-&gt;config_stateobj
+		 */</span>
+		<span class="n">OUT_PKT4</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">REG_A6XX_SP_IBO_COUNT</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="n">OUT_RING</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ir3_shader_nibo</span><span class="p">(</span><span class="n">fs</span><span class="p">));</span>
+
+		<span class="n">fd6_emit_ibo_consts</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">PIPE_SHADER_FRAGMENT</span><span class="p">,</span> <span class="n">ring</span><span class="p">);</span>
+
+		<span class="n">fd6_emit_take_group</span><span class="p">(</span><span class="n">emit</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">FD6_GROUP_IBO</span><span class="p">,</span> <span class="n">ENABLE_DRAW</span><span class="p">);</span>
+		<span class="n">fd_ringbuffer_del</span><span class="p">(</span><span class="n">state</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">emit</span><span class="o">-&gt;</span><span class="n">num_groups</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">OUT_PKT7</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">CP_SET_DRAW_STATE</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">num_groups</span><span class="p">);</span>
+		<span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">emit</span><span class="o">-&gt;</span><span class="n">num_groups</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">struct</span> <span class="n">fd6_state_group</span> <span class="o">*</span><span class="n">g</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">emit</span><span class="o">-&gt;</span><span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+			<span class="kt">unsigned</span> <span class="n">n</span> <span class="o">=</span> <span class="n">g</span><span class="o">-&gt;</span><span class="n">stateobj</span> <span class="o">?</span>
+				<span class="n">fd_ringbuffer_size</span><span class="p">(</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
+
+			<span class="n">debug_assert</span><span class="p">((</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">enable_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">ENABLE_ALL</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+
+			<span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+				<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">CP_SET_DRAW_STATE__0_COUNT</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+						<span class="n">CP_SET_DRAW_STATE__0_DISABLE</span> <span class="o">|</span>
+						<span class="n">g</span><span class="o">-&gt;</span><span class="n">enable_mask</span> <span class="o">|</span>
+						<span class="n">CP_SET_DRAW_STATE__0_GROUP_ID</span><span class="p">(</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">group_id</span><span class="p">));</span>
+				<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="mh">0x00000000</span><span class="p">);</span>
+				<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="mh">0x00000000</span><span class="p">);</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				<span class="n">OUT_RING</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">CP_SET_DRAW_STATE__0_COUNT</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">|</span>
+						<span class="n">g</span><span class="o">-&gt;</span><span class="n">enable_mask</span> <span class="o">|</span>
+						<span class="n">CP_SET_DRAW_STATE__0_GROUP_ID</span><span class="p">(</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">group_id</span><span class="p">));</span>
+				<span class="n">OUT_RB</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">g</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">);</span>
+			<span class="p">}</span>
+
+			<span class="k">if</span> <span class="p">(</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">)</span>
+				<span class="n">fd_ringbuffer_del</span><span class="p">(</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">stateobj</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="n">emit</span><span class="o">-&gt;</span><span class="n">num_groups</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="kernel-code">kernel code</h1>
+
+<h2 id="umdkmd显卡数据交互流程">UMD、KMD、显卡数据交互流程</h2>
+
+<pre><code class="language-plantuml">@startuml
+
+actor platform
+participant adreno_device
+participant dispatcher
+participant ringbuffer
+participant trace
+participant profile
+
+== UMD 向 KMD 发送命令 ==
+platform -&gt; dispatcher++ : adreno_dispatcher_queue_cmds(drawobjs[])
+loop foreach drawobj
+dispatcher -&gt;  dispatcher++ : _queue_xxxobj
+dispatcher -&gt; dispatcher++ : _queue_drawobj(drawobj)
+dispatcher -&gt; dispatcher : ctxt-&gt;drawqueue[tail] = drawobj
+dispatcher -&gt; trace : trace_adreno_cmdbatch_queued()
+dispatcher--
+dispatcher--
+dispatcher--
+
+end loop
+
+
+== [kthread_worker] KMD 与显卡通信 ==
+
+loop kthread_worker
+
+platform -&gt; dispatcher++ : adreno_dispatcher_work()
+
+== retire ==
+
+loop foreach rb : device.ringbuffers
+
+dispatcher  -&gt; dispatcher++ :  adreno_dispatch_process_drawqueue(rb-&gt;dispatch_q)
+dispatcher  -&gt; dispatcher++ :  adreno_dispatch_retire_drawqueue(rb-&gt;dispatch_q)
+
+loop foreach drawobj : dispatch_q-&gt;cmd_q
+dispatcher -&gt; dispatcher++ : retire_obj(drawobj)
+dispatcher -&gt; profile : cmdobj_profile_ticks()
+dispatcher -&gt; trace : trace_adreno_cmdbatch_retired()
+dispatcher--
+end loop
+dispatcher--
+
+== submit ==
+dispatcher -&gt; dispatcher++ :  _adreno_dispatcher_issue_cmds(dev)
+
+loop foreach context
+dispatcher -&gt; dispatcher++ : dispatcher_context_sendcmds(drawctx)
+loop foreach drawobj : ctxt-&gt;drawqueue[]
+dispatcher -&gt; dispatcher: _retire_markerobj
+dispatcher -&gt; dispatcher: _retire_syncobj
+dispatcher -&gt; dispatcher++: sendcmd(drawobj as cmdobj)
+dispatcher -&gt; ringbuffer++: adreno_ringbuffer_submitcmd
+ringbuffer -&gt; profile: kernel started 
+ringbuffer -&gt; profile: user submitted 
+loop foreach ib in cmdobj
+ringbuffer -&gt; ringbuffer: copy to cmd
+end loop
+ringbuffer -&gt; ringbuffer++: adreno_drawctxt_switch(rb, drawctxt);
+ringbuffer -&gt; profile: kernel retired 
+ringbuffer -&gt; profile: user retired 
+ringbuffer -&gt; ringbuffer++: adreno_ringbuffer_addcmds(cmd)
+ringbuffer -&gt; profile : adreno_profile_pre_ib_processing //prepend记录perfcounter指令
+ringbuffer -&gt; profile : adreno_profile_post_ib_processing //记录perfcounter
+ringbuffer -&gt; ringbuffer : adreno_ringbufferr_submit,修改write ptr
+ringbuffer--
+
+ringbuffer -&gt; trace: trace_kgsl_issueibcmds(timestamps, numibs)
+ringbuffer--
+
+dispatcher -&gt; trace: trace_adreno_cmdbatch_submitted
+dispatcher -&gt; dispatcher : dispatch_q-&gt;cmd_q[tail] = cmdobj
+
+
+end loop
+
+dispatcher--
+end loop
+dispatcher--
+
+end loop
+
+@enduml
+</code></pre>
+
+<h2 id="数据交互中重要的类图">数据交互中重要的类图</h2>
+
+<p>UMD提交给KMD context的drawqueue的是<code class="language-plaintext highlighter-rouge">kgsl_drawobj</code>对象。</p>
+
+<p>dispatcher从drawqueue中获取drawobj，转换并提交cmd给显卡，然后将drawobj放入了dispatch_q的cmd_q队列里的是<code class="language-plaintext highlighter-rouge">kgsl_drawobj_cmd</code>。实际这两个对象是继承关系。</p>
+
+<pre><code class="language-plantuml">@startuml
+class kgsl_drawobj {
+	struct kgsl_device *device;
+	struct kgsl_context *context;
+	uint32_t type;
+	uint32_t timestamp;
+	unsigned long flags;
+	struct kref refcount;
+}
+
+class kgsl_drawobj_cmd {
+	struct kgsl_drawobj base;
+	unsigned long priv;
+	unsigned int global_ts;
+	unsigned long fault_policy;
+	unsigned long fault_recovery;
+	struct list_head cmdlist;
+	struct list_head memlist;
+	unsigned int marker_timestamp;
+	struct kgsl_mem_entry *profiling_buf_entry;
+	uint64_t profiling_buffer_gpuaddr;
+	unsigned int profile_index;
+	uint64_t submit_ticks;
+}
+
+kgsl_drawobj &lt;|-down- kgsl_drawobj_cmd
+
+class adreno_dispatcher_drawqueue {
+	struct kgsl_drawobj_cmd *cmd_q[ADRENO_DISPATCH_DRAWQUEUE_SIZE];
+	unsigned int inflight;
+	unsigned int head;
+	unsigned int tail;
+	int active_context_count;
+	unsigned long expires;
+}
+
+adreno_dispatcher_drawqueue "has many" -&gt; kgsl_drawobj_cmd
+
+
+class adreno_ringbuffer {
+    struct adreno_dispatcher_drawqueue dispatch_q
+}
+
+adreno_ringbuffer *-down-&gt;  adreno_dispatcher_drawqueue : dispatch_q
+
+class adreno_device {
+	struct kgsl_device dev;  
+	unsigned long priv;
+	unsigned int *gpmu_cmds;
+	struct adreno_ringbuffer ringbuffers[KGSL_PRIORITY_MAX_RB_LEVELS];
+}
+
+adreno_device *-down-&gt; adreno_ringbuffer : has 4
+
+class adreno_context {
+	struct kgsl_context base;
+
+	struct kgsl_drawobj *drawqueue[ADRENO_CONTEXT_DRAWQUEUE_SIZE];
+	unsigned int drawqueue_head;
+	unsigned int drawqueue_tail;
+}
+
+adreno_context -left-&gt; kgsl_drawobj : drawqueue
+@enduml
+</code></pre>
+
+<h2 id="drawobj是如何retire的">drawobj是如何retire的</h2>
+
+<p>device为每个context存了一个devmemstore结构，gpu会把endofpipe timestamp写进去。
+如果endofpipe timestamp大于drawobj-&gt;timestamp，说明已经处理完了。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">kgsl_devmemstore</span> <span class="p">{</span>
+       <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">soptimestamp</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sbz</span><span class="p">;</span>
+       <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">eoptimestamp</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sbz2</span><span class="p">;</span>
+       <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">preempted</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sbz3</span><span class="p">;</span>
+       <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ref_wait_ts</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sbz4</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">current_context</span><span class="p">;</span>
+       <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sbz5</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>向endofpipe timestamp写入值的微码是在<code class="language-plaintext highlighter-rouge">adreno_ringbuffer_addcmds</code>函数中追加的：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">cp_mem_packet</span><span class="p">(</span><span class="n">adreno_dev</span><span class="p">,</span> <span class="n">CP_EVENT_WRITE</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">drawctxt</span> <span class="o">||</span> <span class="n">is_internal_cmds</span><span class="p">(</span><span class="n">flags</span><span class="p">))</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">CACHE_FLUSH_TS</span> <span class="o">|</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">);</span>
+<span class="k">else</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">CACHE_FLUSH_TS</span><span class="p">;</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">drawctxt</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">is_internal_cmds</span><span class="p">(</span><span class="n">flags</span><span class="p">))</span> <span class="p">{</span>
+<span class="n">ringcmds</span> <span class="o">+=</span> <span class="n">cp_gpuaddr</span><span class="p">(</span><span class="n">adreno_dev</span><span class="p">,</span> <span class="n">ringcmds</span><span class="p">,</span>
+<span class="n">MEMSTORE_ID_GPU_ADDR</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">context_id</span><span class="p">,</span> <span class="n">eoptimestamp</span><span class="p">));</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">timestamp</span><span class="p">;</span>
+
+<span class="cm">/* Write the end of pipeline timestamp to the ringbuffer too */</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">cp_mem_packet</span><span class="p">(</span><span class="n">adreno_dev</span><span class="p">,</span> <span class="n">CP_EVENT_WRITE</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">CACHE_FLUSH_TS</span><span class="p">;</span>
+<span class="n">ringcmds</span> <span class="o">+=</span> <span class="n">cp_gpuaddr</span><span class="p">(</span><span class="n">adreno_dev</span><span class="p">,</span> <span class="n">ringcmds</span><span class="p">,</span>
+<span class="n">MEMSTORE_RB_GPU_ADDR</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">rb</span><span class="p">,</span> <span class="n">eoptimestamp</span><span class="p">));</span>
+<span class="o">*</span><span class="n">ringcmds</span><span class="o">++</span> <span class="o">=</span> <span class="n">rb</span><span class="o">-&gt;</span><span class="n">timestamp</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</code></pre></div></div>

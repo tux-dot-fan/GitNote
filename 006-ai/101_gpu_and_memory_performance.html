@@ -1,0 +1,468 @@
+<h1 id="storage-bandwidth-of-phones">Storage bandwidth of phones</h1>
+
+<p>单位是MB/s</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>型号</th>
+      <th>顺序读</th>
+      <th>顺序写</th>
+      <th>随机读</th>
+      <th>随机写</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mi 13 pro 12GB+512GB</td>
+      <td>3479.4</td>
+      <td>2627.1</td>
+      <td>391.9</td>
+      <td>425.6</td>
+    </tr>
+    <tr>
+      <td>mi 14 pro</td>
+      <td>4075.7</td>
+      <td>3329</td>
+      <td>1651</td>
+      <td>1622</td>
+    </tr>
+    <tr>
+      <td>mi 14 pro 16GB+1TB</td>
+      <td>3828.7</td>
+      <td>3463.7</td>
+      <td>1669.0</td>
+      <td>1055.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>mi 13
+https://www.antutu.com/doc/128683.htm: 
+<img src="assets/Pasted%20image%2020241017115642.png" alt="" />
+<img src="assets/Pasted%20image%2020241017115503.png" alt="" /></p>
+
+<h2 id="mi-14-ultra">mi 14 ultra</h2>
+
+<p>https://www.antutu.com/doc/131057.htm</p>
+
+<p><img src="assets/Pasted%20image%2020241017115920.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020241017115951.png" alt="" /></p>
+
+<h2 id="mi-14-pro">mi 14 pro</h2>
+
+<p>https://www.antutu.com/doc/130518.htm:</p>
+
+<p><img src="assets/Pasted%20image%2020241017120115.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020241017120156.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020241017120518.png" alt="" /></p>
+
+<h2 id="mi-14">mi 14</h2>
+
+<p>https://www.antutu.com/doc/130507.htm:</p>
+
+<p><img src="assets/Pasted%20image%2020241017120415.png" alt="" /></p>
+
+<h1 id="memory-bandwidth-of-phones">Memory bandwidth of phones</h1>
+
+<p>单位是MB/s</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>型号</th>
+      <th>dma读到vtcm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mi 14 pro</td>
+      <td>59000</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="a100显卡算力">A100显卡算力</h1>
+
+<p><img src="assets/Pasted%20image%2020241009161548.png" alt="" />
+https://www.nvidia.cn/data-center/a100/</p>
+
+<p>tf32的算力是156 TFLOPS，312 TFLOPS是要稀疏。</p>
+
+<p>156T FLOPS是怎么算出来的？-&gt; 108 SM, 1024 FMA per SM per cycle，frequency maximum 1410:</p>
+
+<p><img src="assets/Pasted%20image%2020241009161809.png" alt="" /></p>
+
+<p>FP32是19.5 TFLOPS，为108 SM, 每个SM共64个FP32单元，按1410MHz算，结果是9.75 TFLOPS。也许是乘加算2个，那就乘2，就是19.5 TFLOPS。</p>
+
+<p>https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf</p>
+
+<p><img src="assets/Pasted%20image%2020241009163240.png" alt="" /></p>
+
+<h1 id="汇总">汇总</h1>
+
+<p><img src="assets/Pasted image 20240613160328.png" alt="GTK780" /></p>
+
+<h1 id="ddr">DDR</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Generation</th>
+      <th>时钟频率</th>
+      <th>MT/s(clock rate的二倍)</th>
+      <th>burst chop</th>
+      <th>burst length</th>
+      <th>per chip data width</th>
+      <th>per channel (64bit) band width</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DDR3</td>
+      <td>800MHz ~  1600MHz</td>
+      <td>1600MT/s ~ 3200MT/s</td>
+      <td>4</td>
+      <td>8</td>
+      <td>x4, x8, x16</td>
+      <td>25.6 GB/s</td>
+    </tr>
+    <tr>
+      <td>DDR4</td>
+      <td>1066MHz ~ 2666MHz</td>
+      <td>2133MT/s ~ 5333MT/s</td>
+      <td>4</td>
+      <td>8</td>
+      <td>x4, x8, x16</td>
+      <td>42.6 GB/s</td>
+    </tr>
+    <tr>
+      <td>DDR5</td>
+      <td>2000MHz ~ 4000MHz</td>
+      <td>4GT/s ~ 8GT/s</td>
+      <td>8</td>
+      <td>16</td>
+      <td>x32+x8 ECC</td>
+      <td>64 GB/s</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="ddr3">DDR3</h3>
+
+<h4 id="spec">SPEC</h4>
+<p><a href="assets/JESD79-3E.pdf">jedec spec</a></p>
+
+<p>DDR3用于PC和服务器架构。
+一个Socket(CPU)可能有多个Memory Controller。一个Controller可以支持多个channel，通常就是dual channel。一个channel代表一个DIMM条。一个DIMM条可以有多个rank，通常是两个。每个rank是一组内存颗粒。一个channel上的所有内存颗粒共享数据总线，所以同一个channel上有多个rank并不会增加内存带宽，它的作用更多的是增加内存密度。
+每个内存颗粒都有一个CS#，即片选引脚。内存控制器能过将这个引脚置高来选择这个rank。
+所以对于DDR3来说，rank是一个外部概念，但它通过片选信号还支持这个外部概念。</p>
+<h4 id="addressing">Addressing</h4>
+
+<p><img src="assets/Pasted%20image%2020240613120743.png" alt="" /></p>
+
+<h3 id="ddr4">DDR4</h3>
+
+<h4 id="spec-1">SPEC</h4>
+
+<p><a href="assets/JESD79-4.pdf">jedec spec</a></p>
+
+<h4 id="addressing-1">Addressing</h4>
+
+<p><img src="assets/Pasted%20image%2020240613114903.png" alt="" /></p>
+
+<h3 id="lpddr">LPDDR</h3>
+
+<p><a href="assets/JEP166E.pdf">JEP116E</a></p>
+
+<p><a href="assets/JESD209-5C.pdf">LPDDR5/5X spec</a></p>
+
+<h2 id="wide-io--2">Wide IO  2</h2>
+
+<p><a href="assets/JESD229-2.pdf">JESD229-2</a></p>
+
+<h1 id="gddr">GDDR</h1>
+
+<p><img src="assets/Pasted%20image%2020240613174348.png" alt="" /></p>
+
+<p>RTX 4090有24颗 GDDR6X芯片(16Gb density)，总容量48GB，</p>
+
+<p>GDDR就是更高速的DDR, 它的本质是 Quad Data Rate或Octal Data Rate(WCK#是CK 4倍，或DQ是WCK#4倍）。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>==Generation==</th>
+      <th>CK# freq</th>
+      <th>data rate in ref CK#</th>
+      <th>==单引脚速率==</th>
+      <th>单芯片（DRAM)数据位宽</th>
+      <th>单芯片支持通道数</th>
+      <th>单芯片最大带宽</th>
+      <th>显卡可集成几块芯片</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://en.wikipedia.org/wiki/GDDR5_SDRAM">GDDR5</a></td>
+      <td>1~1.5GHz</td>
+      <td>Quad</td>
+      <td>4~6Gbps</td>
+      <td>16/32</td>
+      <td>N.A.</td>
+      <td>24GB/s</td>
+      <td>GTX 780集成16颗</td>
+    </tr>
+    <tr>
+      <td><a href="https://en.wikipedia.org/wiki/GDDR5_SDRAM#GDDR5X">GDDR5X</a></td>
+      <td>1.125~1.25GHz</td>
+      <td>Octal(PAM2)</td>
+      <td>10~14Gbps</td>
+      <td>16/32</td>
+      <td>N.A.</td>
+      <td>56GB/s</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>GDDR6</td>
+      <td>1.25GHz</td>
+      <td>Octal(PAM2)</td>
+      <td>14Gbps\16Gbps</td>
+      <td>32</td>
+      <td>N.A.</td>
+      <td>64GB</td>
+      <td>RTX 2060有12颗16位芯片</td>
+    </tr>
+    <tr>
+      <td>GDDR6X</td>
+      <td> </td>
+      <td>Octal(PAM2)<br /></td>
+      <td>19~21Gbps</td>
+      <td>32</td>
+      <td> </td>
+      <td>84GB/s</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>GDDR6W</td>
+      <td> </td>
+      <td> </td>
+      <td>22Gbps</td>
+      <td>64</td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>GDDR7</td>
+      <td> </td>
+      <td> </td>
+      <td><strong>32</strong>Gbps\48Gbps</td>
+      <td>64</td>
+      <td>4</td>
+      <td>192GB/s</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="gddr5">GDDR5</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>typical value</th>
+      <th>value range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>CK#时钟信号</strong>：</td>
+      <td>1.25GHz</td>
+      <td>1~1.5</td>
+    </tr>
+    <tr>
+      <td><strong>WCK#时钟信号</strong>：<br /></td>
+      <td>2.5GHz (二倍CK#)</td>
+      <td>2~3</td>
+    </tr>
+    <tr>
+      <td><strong>data rate per pin</strong>：</td>
+      <td>5Gbps(WCK#的上升沿和下降沿各采样一次)</td>
+      <td>4~6</td>
+    </tr>
+    <tr>
+      <td><strong>单芯片数据引脚个数</strong>:</td>
+      <td>32</td>
+      <td>16/32</td>
+    </tr>
+    <tr>
+      <td><strong>单芯片带宽</strong>:</td>
+      <td>5Gbps * 32 = 160Gbps = 20GB/s<br /></td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="典型显卡解读">典型显卡解读</h3>
+
+<p><img src="assets/Pasted image 20240613160621.png" alt="" /></p>
+
+<p><img src="assets/Pasted image 20240613160328.png" alt="" /></p>
+
+<p>单芯片32位宽，总384位宽，算出芯片个数为12颗。即图中上、左、右各4颗。
+总带宽288.4GB/s，算出单颗288.4/12=24GB/s。
+单针脚带宽6Gbps，算出每颗芯片引脚数24GB/s / 6Gbps = 16个。
+单针脚带宽6Gbps，则CK#频率1.25GHz, WK#频率2.5GHz。</p>
+
+<h2 id="gddr6">GDDR6</h2>
+
+<p><a href="assets/JESD250D.pdf">jedec spec</a></p>
+
+<h3 id="典型显卡解读-1">典型显卡解读</h3>
+
+<p>RTX 2060数据：（<a href="https://www.techpowerup.com/gpu-specs/geforce-rtx-2060.c3310">来源</a>）</p>
+
+<p><img src="assets/Pasted image 20240613162001.png" alt="" /></p>
+
+<p>CK# 1.75GHz
+WK# 3.5GHz
+data rate per pin:  3.5GHz * 4(quad data rate) = 14Gbps
+per chip. bandwidth(16 pins): 14Gbps * 32 / 8bits per byte = 54GB/s
+number of chips: 192/32 = 6
+total bandwidth: 54GB/s * 6 = 336GB/s</p>
+
+<p>这个参数匹配下面的<a href="https://www.anandtech.com/show/12345/sk-hynix-lists-gddr6-memory-as-available-now">芯片</a>：</p>
+
+<p><img src="assets/Pasted image 20240613172020.png" alt="" /></p>
+
+<p>显卡上有6颗芯片也符合从<a href="https://www.techpowerup.com/gpu-specs/geforce-rtx-2060.c3310#gallery-7">图</a>上看到的：</p>
+
+<p><img src="assets/Pasted image 20240613172130.png" alt="" /></p>
+
+<h2 id="gddr6w">GDDR6W</h2>
+
+<p>https://semiconductor.samsung.com/news-events/tech-blog/a-bridge-between-worlds-how-samsungs-gddr6w-is-creating-immersive-vr-with-powerful-graphics-memory/
+相比GDDR6, 两层，64根线。</p>
+
+<p><img src="assets/Pasted image 20240613173706.png" alt="" /></p>
+
+<p><img src="assets/Pasted image 20240613173926.png" alt="" /></p>
+
+<p>与HBM2E的区别</p>
+
+<h2 id="gddr7">GDDR7</h2>
+
+<p><a href="assets/JESD239.01.pdf">Jedec Spec</a></p>
+
+<p>GDDR7把channel做为芯片内部概念，一个芯片有4个channel，一个channel有32个数据引脚，即单个芯片有128位宽。最高频率是32Gps，且每个时钟周期传输3bit数据。所以单颗GDDR7芯片的带宽为192GB/s。</p>
+
+<p>主要参数：
+<img src="assets/Pasted image 20240613112549.png" alt="" /></p>
+<h3 id="gddr7的单芯片192gbs计算方法">GDDR7的单芯片192GB/s计算方法</h3>
+
+<p>根据提供的搜索结果,192GB/s这个带宽数值是针对GDDR7显存标准中每个单个GDDR7内存芯片的理论峰值带宽。具体来说:</p>
+
+<ul>
+  <li>GDDR7标准支持每个引脚32Gbps的数据速率,规范最高可达48Gbps。<a href="https://ieeexplore.ieee.org/document/9731621"></a></li>
+  <li>GDDR7采用PAM3编码方式,每2个时钟周期可传输3个比特,而非传统的2个比特。这使得GDDR7的数据传输效率提高了50%。<a href="https://pcr.cloud-mercato.com/providers/digitalocean/flavors/s-32vcpu-192gb"></a><a href="https://ieeexplore.ieee.org/document/9731621"></a></li>
+  <li>GDDR7相比GDDR6,独立通道数从2个增加到4个。<a href="https://pcr.cloud-mercato.com/providers/digitalocean/flavors/s-32vcpu-192gb"></a><a href="https://ieeexplore.ieee.org/document/9731621"></a></li>
+</ul>
+
+<p>因此,如果一个GDDR7芯片有32个数据引脚,每个引脚32Gbps,4个独立通道,则该芯片的理论带宽为:<br />
+32 (引脚数) x 32Gbps (每引脚数据率) x 4 (通道数) x 1.5 (PAM3编码效率) = 192GB/s所以192GB/s是基于GDDR7标准中规定的最大配置时,单个GDDR7芯片可实现的理论峰值带宽。<a href="https://pcr.cloud-mercato.com/providers/digitalocean/flavors/s-32vcpu-192gb"></a><a href="https://ieeexplore.ieee.org/document/9731621"></a>这一带宽数值相比上一代GDDR6有了翻番的提升,主要得益于PAM3编码、更高的数据速率和增加的独立通道数等技术创新。</p>
+<h1 id="hbm">HBM</h1>
+<p>HBM是位宽高，但是单引脚速度慢。采用堆叠方式，放了好多DRAM。
+<img src="assets/Pasted image 20240613173926.png" alt="" /> 与HBM2E的区别</p>
+
+<h1 id="pcie">PCIe</h1>
+
+<p>PCIe 3.0是8GT/s
+PCIe 4.0是16GT/s
+PCIe 5.0是32GT/s</p>
+
+<p>PCIe 5.0一个link最大支持32个lane，带宽为<code class="language-plaintext highlighter-rouge">32*32/8 = 128GB/s</code>。</p>
+
+<h1 id="nvlink">NVLink</h1>
+
+<p>2017年，Nvidia推出了第二代NVLink技术。两颗GPU V100之间含6条NVLink, 每个link中包含8个lane, 每条lane的速率提升到25Gb/s, 整个系统的双向带宽变为300GB/s，带宽是NVLink 1.0的近2倍。</p>
+
+<p>2020年，NVLink 3.0技术诞生，两颗GPU A100芯片之间存在12条NVLink, 每条NVLink含有4条lane, 单条lane的速率为50Gb/s, 因此整个系统的双向带宽提升到600GB/s，总带宽相比NVLink 2.0提升了1倍。由于NVLink的数目增加了，NVSwitch的port数目也相应增加到36个，每个port的速率为50GB/s。由8颗GPU A100与4个NVSwitch组成了DGX A100, 如下图所示。
+<img src="assets/Pasted image 20240613191023.png" alt="" /></p>
+
+<p>2022年，NVLink技术升级到第四代，两个GPU H100芯片间通过18条NVLink互联，每条link中含2条lane, 每条lane支持100Gb/s PAM4的速率，因此双向总带宽提升到900GB/s。NVSwitch也升级到第三代，每个NVSwitch支持64个port，每个port的速率为50GB/s。DGX H100由8颗H100芯片与4颗NVSwitch芯片构成，如下图所示。图中每个NVSwitch的另一侧与多个800G OSFP光模块相连。以左侧第一个NVSwitch为例，其与GPU相连侧的单向总带宽为4Tbps (20NVLink<em>200Gbps)，与光模块相连侧的总带宽为也为4Tbps (5</em>800Gbps)，两者大小相等， 是非阻塞(non-blocking)网络。需要注意的是，光模块中的带宽是单向带宽，而在AI芯片中一般习惯使用双向带宽。</p>
+
+<p><img src="https://developer.qcloudimg.com/http-save/yehe-7659610/58dc9107f1f996ebc9905bd4e7baf089.png" alt="" /></p>
+
+<p>(图片来自https://blog.apnic.net/2023/08/10/large-language-models-the-hardware-connection/)</p>
+
+<p>下表整理了每一代NVLink的指标参数。</p>
+
+<p><img src="https://developer.qcloudimg.com/http-save/yehe-7659610/8a519ba9a12693c97db961ca5746102c.png" alt="" /></p>
+
+<p>而PCIe每一代的参数如下表所示，</p>
+
+<p><img src="https://developer.qcloudimg.com/http-save/yehe-7659610/91e527e1413711e2fb23882ac0c75335.png" alt="" /></p>
+
+<p>从单条lane的速率来看，NVLink整体比同一时期的PCIe的指标高1倍左右，而总带宽的优势更是明显，NVLink是PCIe总带宽的5倍左右。一直在超越，从未停止。</p>
+
+<h1 id="pim">PIM</h1>
+
+<p><a href="assets/1-s2.0-S2773064622000160-main.pdf">A survey on processing-in-memory techniques: Advances and challenges</a></p>
+<h2 id="pim-mmu">PIM MMU</h2>
+
+<p><a href="assets/2409.06204v1.pdf">PIM-MMU: A Memory Management Unit for Accelerating Data Transfers in Commercial PIM Systems</a></p>

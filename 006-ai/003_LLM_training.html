@@ -1,0 +1,73 @@
+<h1 id="模型训练">模型训练</h1>
+
+<h2 id="llama">Llama</h2>
+
+<h3 id="the-llama-3-herd-of-models">The Llama 3 Herd of Models</h3>
+
+<p><a href="assets/468347782_9231729823505907_4580471254289036098_n.pdf">PDF: The Llama 3 Herd of Models</a></p>
+
+<h4 id="pretrainin">pretrainin</h4>
+
+<h4 id="post-training">post-training</h4>
+
+<p>RL</p>
+
+<p>SFT</p>
+
+<p>DPO</p>
+
+<h2 id="apple-intelligence-foundation-models">Apple Intelligence Foundation Models</h2>
+
+<p>https://machinelearning.apple.com/research/introducing-apple-foundation-models</p>
+
+<p><a href="assets/AppleIntelligenceFoundationModels_2407.21075v1.pdf">PDF: Apple Intelligence Foundation Language Models</a></p>
+
+<p><img src="assets/Pasted%20image%2020250314101343.png" alt="" />
+AFM-on-device模型参数量2.58B（0.15B embedding)，推理速度是<code class="language-plaintext highlighter-rouge">0.6 ms per prompt token</code>，30 token/s without token speculation。</p>
+
+<p>优化点：</p>
+
+<ol>
+  <li>Shared input/output embedding</li>
+  <li>GQA: 24 query, 8 kv heads</li>
+  <li>LoRA adpater on-the-fly，rank 16的adapter大小在10MB量级。</li>
+  <li>量化：4比特、2比特混合量化，总体小于4bits， 3.7bpw。GPTQ、AWQ。</li>
+  <li>Accuracy recovery adapter</li>
+</ol>
+
+<p>Device model用于：</p>
+<ol>
+  <li>便签中写作、校对、总结等场景。</li>
+  <li>邮件、短信、通知的优先级+紧急程度判断</li>
+  <li>邮件总结、回复、语气调整</li>
+</ol>
+
+<p><img src="assets/Pasted%20image%2020250314104200.png" alt="" /></p>
+
+<h2 id="deepseek">DeepSeek</h2>
+
+<h3 id="deepseek-r1-incentivizing-reasoning-capability-in-llms-via-reinforcement-learning">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</h3>
+
+<p>https://arxiv.org/abs/2501.12948</p>
+
+<p><a href="assets/2501.12948v1.pdf">PDF: DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></p>
+
+<p>论文要求：</p>
+<ol>
+  <li>只使用RL来强化自身能力，这是self-evolution，不需要人类给正确答案。少量cold start 数据（几千条）有帮助。</li>
+  <li>大的模型能过RL学习到的知识，小的模型(32B)无法通过RL学到，所以蒸馏更有用。
+<img src="assets/Pasted%20image%2020250313142917.png" alt="" /></li>
+</ol>
+
+<p>https://arxiv.org/abs/2402.03300</p>
+
+<p><img src="assets/Pasted%20image%2020250313142934.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020250313143017.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020250313143032.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020250313143048.png" alt="" /></p>
+
+<p><img src="assets/Pasted%20image%2020250313143107.png" alt="" /></p>
+

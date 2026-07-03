@@ -1,0 +1,59 @@
+<h1 id="levenshtein-distance">levenshtein-distance</h1>
+
+<p><a href="https://en.wikipedia.org/wiki/Levenshtein_distance">利文斯坦 距离</a> 简要来说：</p>
+
+<p><img src="assets/levenshtain-distance.png" alt="" /></p>
+
+<ol>
+  <li>b是空串，距离就是a的长度，反之亦然</li>
+  <li>a[0] == b[0] ，则lev(a,b ) = lev(a[1:], b[1:])，即首字符相同，则忽略不计</li>
+  <li>如果a[0] != b[0]，则计1，再＋下面三个值的最小值：
+    <ol>
+      <li>lev(a[1:], b)</li>
+      <li>lev(a, b[1:])</li>
+      <li>lev(a[1:], b[1:])</li>
+    </ol>
+  </li>
+</ol>
+
+<p>听起来很简单，可以写代码了，</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">int</span> <span class="nf">lev</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span> <span class="n">a</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string_view</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+    
+    <span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">||</span> <span class="n">b</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="n">b</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+    <span class="p">}</span>
+    
+    <span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">return</span>  <span class="n">lev</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">a</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">sub1</span> <span class="o">=</span> <span class="n">lev</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">b</span><span class="p">);</span>
+        <span class="kt">int</span> <span class="n">sub2</span> <span class="o">=</span> <span class="n">lev</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">b</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+        <span class="kt">int</span> <span class="n">sub3</span> <span class="o">=</span> <span class="n">lev</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">({</span><span class="n">sub1</span><span class="p">,</span> <span class="n">sub2</span><span class="p">,</span> <span class="n">sub3</span><span class="p">});</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="如何用于搜索">如何用于搜索</h1>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">const</span> <span class="kt">float</span> <span class="n">limit</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span> <span class="o">=</span> <span class="s">"history"</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">term</span> <span class="o">=</span> <span class="s">"hitory"</span><span class="p">;</span>
+
+<span class="kt">bool</span> <span class="nf">match</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span> <span class="n">term</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">lev</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span><span class="o">/</span> <span class="n">term</span><span class="p">.</span><span class="n">size</span><span class="p">()</span>  <span class="o">&lt;</span> <span class="n">limit</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="优化">优化</h1>
+
+<p>实际试用了下，发现效率超级低，用于搜索app名字都被导致卡顿和风扇狂转。</p>
+
+<p>最简单的优化就是超过一定距离后放弃。比如说超过搜索term长度一半的时候。</p>
+
