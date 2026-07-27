@@ -1,0 +1,112 @@
+{
+  "nodes": [
+    {
+      "id": "b1b2c3d4e5f60001",
+      "type": "group",
+      "x": -50,
+      "y": -100,
+      "width": 1400,
+      "height": 800,
+      "label": "交互层级系统",
+      "color": "5"
+    },
+    {
+      "id": "b1b2c3d4e5f60002",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 250,
+      "text": "# Level 1: 无意识交互\n\n**零成本，用户无需做任何事**\n\n- 滑动屏幕 → 宠物跟着晃动\n- 翻转手机 → 宠物翻滚\n- 手机震动 → 宠物吓一跳\n- 切换 APP → 眼神跟随\n- 屏幕变暗 → 宠物困了",
+      "color": "4"
+    },
+    {
+      "id": "b1b2c3d4e5f60003",
+      "type": "text",
+      "x": 400,
+      "y": 0,
+      "width": 300,
+      "height": 250,
+      "text": "# Level 2: 轻交互\n\n**1-2 秒**\n\n- 点一下 → 抬头看你\n- 双击 → 开心跳一下\n- 长按 → 蹭你的手指\n- 滑动它 → 被推着走\n- 摇手机 → 被晃晕",
+      "color": "3"
+    },
+    {
+      "id": "b1b2c3d4e5f60004",
+      "type": "text",
+      "x": 800,
+      "y": 0,
+      "width": 300,
+      "height": 250,
+      "text": "# Level 3: 深交互\n\n**5-30 秒**\n\n- 喂食 → 开心地吃\n- 洗澡 → 享受地眯眼\n- 玩耍 → 追逐游戏\n- 拍照 → 摆 pose\n- 唱歌 → 跟着哼唱",
+      "color": "2"
+    },
+    {
+      "id": "b1b2c3d4e5f60005",
+      "type": "text",
+      "x": 200,
+      "y": 350,
+      "width": 350,
+      "height": 250,
+      "text": "# Level 4: 情感交互\n\n**无时间限制**\n\n- 它主动分享\"今天看到的有趣的事\"\n- 它记得你上周说过的话\n- 它有\"想问你但不敢问\"的时刻\n- 它会在合适的时候给你支持\n\n**这是粘性的核心来源**",
+      "color": "1"
+    },
+    {
+      "id": "b1b2c3d4e5f60006",
+      "type": "text",
+      "x": 650,
+      "y": 350,
+      "width": 350,
+      "height": 250,
+      "text": "# 宠物主动发起（70%）\n\n**关键设计：交互发起权反转**\n\n- 你 2 小时没碰手机 → 偷偷看你\n- 深夜刷手机 → 打哈欠\n- 刚挂断长电话 → 好奇歪头\n- 反复切换 APP → 发呆\n- 刚解锁手机 → 惊喜跳起来",
+      "color": "6"
+    },
+    {
+      "id": "b1b2c3d4e5f60007",
+      "type": "text",
+      "x": 1100,
+      "y": 100,
+      "width": 220,
+      "height": 200,
+      "text": "# 交互原则\n\n## 不打扰\n它知道什么时候该安静\n\n## 共情\n它表现出和你相似的情绪\n\n## 边界感\n你生气时它不凑过来\n\n## 惊喜\n偶尔有意外反应",
+      "color": "5"
+    }
+  ],
+  "edges": [
+    {
+      "id": "f1b2c3d4e5f60001",
+      "fromNode": "b1b2c3d4e5f60002",
+      "fromSide": "right",
+      "toNode": "b1b2c3d4e5f60003",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "互动加深"
+    },
+    {
+      "id": "f1b2c3d4e5f60002",
+      "fromNode": "b1b2c3d4e5f60003",
+      "fromSide": "right",
+      "toNode": "b1b2c3d4e5f60004",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "互动加深"
+    },
+    {
+      "id": "f1b2c3d4e5f60003",
+      "fromNode": "b1b2c3d4e5f60002",
+      "fromSide": "bottom",
+      "toNode": "b1b2c3d4e5f60005",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "情感连接"
+    },
+    {
+      "id": "f1b2c3d4e5f60004",
+      "fromNode": "b1b2c3d4e5f60006",
+      "fromSide": "left",
+      "toNode": "b1b2c3d4e5f60005",
+      "toSide": "right",
+      "toEnd": "arrow",
+      "label": "双向互动"
+    }
+  ]
+}

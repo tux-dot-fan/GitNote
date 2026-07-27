@@ -1,0 +1,141 @@
+{
+  "nodes": [
+    {
+      "id": "e1b2c3d4e5f60001",
+      "type": "group",
+      "x": -50,
+      "y": -100,
+      "width": 1400,
+      "height": 1000,
+      "label": "On-Device Training 流程",
+      "color": "4"
+    },
+    {
+      "id": "e1b2c3d4e5f60002",
+      "type": "text",
+      "x": 500,
+      "y": 0,
+      "width": 300,
+      "height": 150,
+      "text": "# 数据收集（在线）\n\n- 用户行为序列\n- 屏幕视觉特征\n- 传感器数据\n- 用户反馈信号\n- 环境上下文",
+      "color": "3"
+    },
+    {
+      "id": "e1b2c3d4e5f60003",
+      "type": "text",
+      "x": 500,
+      "y": 200,
+      "width": 300,
+      "height": 150,
+      "text": "# 数据筛选与标注\n\n- 高价值样本筛选\n- 自动标注（正/负/中性）\n- 数据去噪\n- 过滤异常数据",
+      "color": "2"
+    },
+    {
+      "id": "e1b2c3d4e5f60004",
+      "type": "text",
+      "x": 500,
+      "y": 400,
+      "width": 300,
+      "height": 180,
+      "text": "# 端侧微调（后台）\n\n**触发时机：**\n- 充电时（最佳）\n- 夜间空闲时\n- 累积足够数据后\n\n**训练策略：**\n- LoRA 微调\n- 5-15 分钟\n- 每周 2-3 次",
+      "color": "1"
+    },
+    {
+      "id": "e1b2c3d4e5f60005",
+      "type": "text",
+      "x": 500,
+      "y": 650,
+      "width": 300,
+      "height": 150,
+      "text": "# 模型更新\n\n- 热更新（无需重启）\n- 渐进式切换\n- 版本管理\n- 支持回滚",
+      "color": "6"
+    },
+    {
+      "id": "e1b2c3d4e5f60006",
+      "type": "text",
+      "x": 0,
+      "y": 200,
+      "width": 280,
+      "height": 200,
+      "text": "# 数据来源\n\n## 用户行为\n- APP 使用模式\n- 与宠物互动\n- 屏幕内容偏好\n\n## 情绪反馈\n- 正：点击/停留/重复\n- 负：忽略/快速切换\n\n## 环境上下文\n- 时间/地点/设备状态",
+      "color": "5"
+    },
+    {
+      "id": "e1b2c3d4e5f60007",
+      "type": "text",
+      "x": 1000,
+      "y": 200,
+      "width": 280,
+      "height": 200,
+      "text": "# LoRA 微调优势\n\n## 参数高效\n原始 1B → 适配器 10-50M\n\n## 训练快\n5-15 分钟完成\n\n## 内存友好\n显存需求降低 10 倍\n\n## 可组合\n不同场景用不同适配器",
+      "color": "4"
+    },
+    {
+      "id": "e1b2c3d4e5f60008",
+      "type": "text",
+      "x": 0,
+      "y": 500,
+      "width": 280,
+      "height": 180,
+      "text": "# 质量控制\n\n- A/B 测试：新 vs 旧模型\n- 用户满意度隐式反馈\n- 自动回滚机制\n- 训练数据噪声过滤",
+      "color": "2"
+    },
+    {
+      "id": "e1b2c3d4e5f60009",
+      "type": "text",
+      "x": 1000,
+      "y": 500,
+      "width": 280,
+      "height": 180,
+      "text": "# 功耗优化\n\n**触发时机：**\n- 充电时（不影响续航）\n- 夜间空闲时\n- 电量 > 30%\n\n**训练强度：**\n- 小数据量：5 分钟\n- 大数据量：15 分钟\n- 平均每周 30-60 分钟",
+      "color": "3"
+    }
+  ],
+  "edges": [
+    {
+      "id": "f1b2c3d4e5f60010",
+      "fromNode": "e1b2c3d4e5f60002",
+      "fromSide": "bottom",
+      "toNode": "e1b2c3d4e5f60003",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "筛选"
+    },
+    {
+      "id": "f1b2c3d4e5f60011",
+      "fromNode": "e1b2c3d4e5f60003",
+      "fromSide": "bottom",
+      "toNode": "e1b2c3d4e5f60004",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "训练"
+    },
+    {
+      "id": "f1b2c3d4e5f60012",
+      "fromNode": "e1b2c3d4e5f60004",
+      "fromSide": "bottom",
+      "toNode": "e1b2c3d4e5f60005",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "更新"
+    },
+    {
+      "id": "f1b2c3d4e5f60013",
+      "fromNode": "e1b2c3d4e5f60006",
+      "fromSide": "right",
+      "toNode": "e1b2c3d4e5f60002",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "提供数据"
+    },
+    {
+      "id": "f1b2c3d4e5f60014",
+      "fromNode": "e1b2c3d4e5f60007",
+      "fromSide": "left",
+      "toNode": "e1b2c3d4e5f60004",
+      "toSide": "right",
+      "toEnd": "arrow",
+      "label": "优化训练"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+	"nodes":[
+		{"id":"c1b2c3d4e5f60001","type":"group","x":-100,"y":-100,"width":1300,"height":900,"color":"6","label":"情绪系统架构"},
+		{"id":"c1b2c3d4e5f60002","type":"text","text":"# 情绪状态模型\n\n**两个维度：**\n- 效价（Valence）：-1 到 +1\n- 唤醒度（Arousal）：0 到 1\n\n**主导情绪：**从情绪池中选择最匹配的","x":0,"y":0,"width":300,"height":200,"color":"4"},
+		{"id":"c1b2c3d4e5f60005","type":"text","text":"# 😊 开心\n\n- 你使用社交/娱乐 APP\n- 宠物活跃地跳来跳去\n- 放大正面情绪","x":0,"y":300,"width":250,"height":180,"color":"3"},
+		{"id":"c1b2c3d4e5f60006","type":"text","text":"# 😢 难过\n\n- 深夜 + 负面内容\n- 宠物安静地趴在角落\n- 沉默的陪伴","x":300,"y":300,"width":250,"height":180,"color":"5"},
+		{"id":"c1b2c3d4e5f60007","type":"text","text":"# 😠 生气\n\n- 快速打字 + 切出对话\n- 宠物缩在角落\n- 给你空间，不打扰","x":600,"y":300,"width":250,"height":180,"color":"1"},
+		{"id":"c1b2c3d4e5f60009","type":"text","text":"# 🤔 好奇\n\n- 你刚挂断电话\n- 你打开新 APP\n- 宠物歪头看你","x":0,"y":550,"width":250,"height":180,"color":"4"},
+		{"id":"c1b2c3d4e5f60010","type":"text","text":"# 😌 专注\n\n- 长时间使用生产力 APP\n- 宠物安静趴在角落\n- 偶尔抬头看你","x":300,"y":550,"width":250,"height":180,"color":"5"},
+		{"id":"c1b2c3d4e5f60011","type":"text","text":"# 😰 焦虑\n\n- 频繁切换 APP\n- 反复查看消息\n- 宠物也坐立不安","x":600,"y":550,"width":250,"height":180,"color":"2"},
+		{"id":"c1b2c3d4e5f60012","type":"text","text":"# 🥳 惊喜\n\n- 刚解锁手机\n- 你很久没用手机后回来\n- 宠物跳起来迎接","x":900,"y":550,"width":250,"height":180,"color":"1"},
+		{"id":"c1b2c3d4e5f60004","type":"text","text":"# 环境信号\n\n- 光线传感器 → 明暗\n- 加速度计 → 静止/运动\n- 充电状态 → 固定/移动\n- 地理围栏 → 家/公司/户外","x":850,"y":0,"width":300,"height":200,"color":"2"},
+		{"id":"c1b2c3d4e5f60008","type":"text","text":"# 😴 困倦\n\n- 深夜还在用手机\n- 宠物打哈欠、蜷缩\n- 偶尔抬头看你","x":900,"y":300,"width":250,"height":180,"color":"6"},
+		{"id":"c1b2c3d4e5f60003","type":"text","text":"# 情绪输入信号\n\n## 行为信号\n- APP 切换频率 → 焦虑/无聊\n- 屏幕使用时长 → 沉迷/专注\n- 通知响应速度 → 期待/不在意\n\n## 屏幕内容信号\n- 内容类型 → 社交/娱乐/工作\n- 内容情感 → 正面/负面\n\n## 时间信号\n- 时间段 → 早上/下午/晚上/深夜\n- 星期 → 工作日/周末","x":425,"y":-40,"width":350,"height":280,"color":"3"}
+	],
+	"edges":[
+		{"id":"d1b2c3d4e5f60001","fromNode":"c1b2c3d4e5f60002","fromSide":"bottom","toNode":"c1b2c3d4e5f60005","toSide":"top","label":"触发"},
+		{"id":"d1b2c3d4e5f60002","fromNode":"c1b2c3d4e5f60003","fromSide":"bottom","toNode":"c1b2c3d4e5f60006","toSide":"top","label":"触发"},
+		{"id":"d1b2c3d4e5f60003","fromNode":"c1b2c3d4e5f60004","fromSide":"bottom","toNode":"c1b2c3d4e5f60008","toSide":"top","label":"触发"}
+	]
+}

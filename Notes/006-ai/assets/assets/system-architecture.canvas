@@ -1,0 +1,36 @@
+{
+	"nodes":[
+		{"id":"i1b2c3d4e5f60001","type":"group","x":-100,"y":-100,"width":1400,"height":1200,"color":"5","label":"系统架构总览"},
+		{"id":"i1b2c3d4e5f60007","type":"group","x":0,"y":400,"width":600,"height":400,"color":"3","label":"行为决策层"},
+		{"id":"i1b2c3d4e5f60015","type":"group","x":700,"y":0,"width":500,"height":400,"color":"6","label":"存储层"},
+		{"id":"i1b2c3d4e5f60002","type":"group","x":0,"y":0,"width":600,"height":300,"color":"4","label":"用户界面层"},
+		{"id":"i1b2c3d4e5f60018","type":"group","x":700,"y":500,"width":500,"height":300,"color":"1","label":"On-Device Training"},
+		{"id":"i1b2c3d4e5f60011","type":"group","x":0,"y":900,"width":600,"height":200,"color":"2","label":"数据采集层"},
+		{"id":"i1b2c3d4e5f60022","type":"group","x":700,"y":900,"width":500,"height":200,"color":"5","label":"硬件抽象层"},
+		{"id":"aa6b5ba80bee9b16","x":468,"y":563,"width":250,"height":60,"type":"text","text":""},
+		{"id":"i1b2c3d4e5f60003","type":"text","text":"# 动画引擎\n\nLottie\nSpine 2D\nGPU 加速","x":20,"y":30,"width":170,"height":120},
+		{"id":"i1b2c3d4e5f60004","type":"text","text":"# 交互管理\n\n手势识别\n触摸事件\n拖拽支持","x":210,"y":30,"width":170,"height":120},
+		{"id":"i1b2c3d4e5f60005","type":"text","text":"# 状态显示\n\n通知栏图标\n锁屏显示\n悬浮窗","x":400,"y":30,"width":170,"height":120},
+		{"id":"i1b2c3d4e5f60006","type":"text","text":"**职责：**渲染宠物动画、处理用户交互、显示宠物状态\n\n**技术：**Android View/Canvas、GPU 加速、2D 骨骼动画","x":20,"y":170,"width":560,"height":100,"color":"3"},
+		{"id":"i1b2c3d4e5f60023","type":"text","text":"# NPU 加速\n\nQualcomm QNN\nMediaTek NeuroPilot","x":720,"y":930,"width":230,"height":100},
+		{"id":"i1b2c3d4e5f60024","type":"text","text":"# GPU 加速\n\n动画渲染\n图像处理","x":970,"y":930,"width":210,"height":100},
+		{"id":"i1b2c3d4e5f60008","type":"text","text":"# Layer 1: 行为引擎\n\n**状态：常驻**\n**频率：1-2 Hz**\n\n输入：状态 + 上下文 + 传感器\n模型：10-50M 参数\n输出：行为意图 + 情绪状态","x":20,"y":430,"width":270,"height":180},
+		{"id":"i1b2c3d4e5f60009","type":"text","text":"# Layer 2: 视觉理解\n\n**状态：按需触发**\n**频率：0.02-0.05 Hz**\n\n触发：屏幕变化/定时采样\n模型：1-3B VLA INT4\n输出：视觉语义摘要","x":310,"y":430,"width":270,"height":180},
+		{"id":"i1b2c3d4e5f60010","type":"text","text":"**职责：**理解屏幕内容、做出行为决策、管理情绪状态\n\n**技术：**Transformer/MLP、VLA 模型、LoRA 微调","x":20,"y":650,"width":560,"height":120,"color":"2"},
+		{"id":"i1b2c3d4e5f60012","type":"text","text":"# 传感器\n\n加速度计\n陀螺仪\n光线传感器","x":20,"y":930,"width":170,"height":100},
+		{"id":"i1b2c3d4e5f60013","type":"text","text":"# 屏幕截图\n\n每 30-60 秒一次\n图像压缩\n特征提取","x":210,"y":930,"width":170,"height":100},
+		{"id":"i1b2c3d4e5f60014","type":"text","text":"# 系统事件\n\n通知监听\nAPP 切换\n充电状态","x":400,"y":930,"width":170,"height":100},
+		{"id":"i1b2c3d4e5f60016","type":"text","text":"# SQLite 数据库\n\n**人格参数**\n- 性格倾向\n- 情绪基线\n\n**记忆数据**\n- 短期记忆（最近 10 件事）\n- 长期记忆（重要时刻）","x":720,"y":30,"width":460,"height":150},
+		{"id":"i1b2c3d4e5f60017","type":"text","text":"**行为历史**\n- 与用户互动记录\n- 情绪变化轨迹\n\n**用户偏好**\n- 宠物位置\n- 交互偏好\n- 通知设置","x":720,"y":200,"width":460,"height":150},
+		{"id":"i1b2c3d4e5f60019","type":"text","text":"# 数据收集\n\n- 用户行为序列\n- 屏幕视觉特征\n- 用户反馈信号","x":720,"y":530,"width":230,"height":150},
+		{"id":"i1b2c3d4e5f60020","type":"text","text":"# 模型微调\n\n- LoRA 适配器\n- 充电时训练\n- 5-15 分钟","x":970,"y":530,"width":210,"height":150},
+		{"id":"i1b2c3d4e5f60021","type":"text","text":"**目标：**让宠物随着用户使用而\"成长\"，越来越\"懂\"用户\n\n**隐私：**所有数据本地处理，不出设备","x":720,"y":700,"width":460,"height":80,"color":"4"}
+	],
+	"edges":[
+		{"id":"j1b2c3d4e5f60001","fromNode":"i1b2c3d4e5f60002","fromSide":"bottom","toNode":"i1b2c3d4e5f60007","toSide":"top","label":"行为意图 → 动画"},
+		{"id":"j1b2c3d4e5f60002","fromNode":"i1b2c3d4e5f60011","fromSide":"top","toNode":"i1b2c3d4e5f60007","toSide":"bottom","label":"传感器数据"},
+		{"id":"j1b2c3d4e5f60003","fromNode":"i1b2c3d4e5f60015","fromSide":"left","toNode":"i1b2c3d4e5f60007","toSide":"right","label":"状态/记忆"},
+		{"id":"j1b2c3d4e5f60004","fromNode":"i1b2c3d4e5f60018","fromSide":"left","toNode":"i1b2c3d4e5f60007","toSide":"right","label":"模型更新"},
+		{"id":"j1b2c3d4e5f60005","fromNode":"i1b2c3d4e5f60022","fromSide":"top","toNode":"i1b2c3d4e5f60018","toSide":"bottom","label":"硬件加速"}
+	]
+}
