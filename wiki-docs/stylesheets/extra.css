@@ -1,0 +1,145 @@
+/* ===== GitNote 站点皮肤（Material 覆写） ===== */
+
+/* 字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+body,
+.md-typeset {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+code, pre, .highlight {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+/* 主题色（靛蓝主色 + 青强调色） */
+[data-md-color-scheme='default'] {
+  --md-primary-fg-color:        #4f46e5;   /* indigo-600 */
+  --md-primary-fg-color--light: #818cf8;   /* indigo-400 */
+  --md-primary-fg-color--dark:  #3730a3;   /* indigo-800 */
+  --md-accent-fg-color:         #0d9488;   /* teal-600 */
+  --md-accent-fg-color--light:  #14b8a6;
+  --md-typeset-a-color:         #4f46e5;
+}
+[data-md-color-scheme='slate'] {
+  --md-primary-fg-color:        #6366f1;
+  --md-primary-fg-color--light: #818cf8;
+  --md-primary-fg-color--dark:  #4338ca;
+  --md-accent-fg-color:         #2dd4bf;
+  --md-accent-fg-color--light:  #5eead4;
+  --md-typeset-a-color:         #a5b4fc;
+}
+
+/* 顶部导航条稍作质感处理 */
+.md-header {
+  background: linear-gradient(90deg, #3730a3 0%, #4f46e5 55%, #4338ca 100%);
+  box-shadow: 0 1px 4px rgba(30, 27, 75, .25);
+}
+[data-md-color-scheme='slate'] .md-header {
+  background: linear-gradient(90deg, #1e1b4b 0%, #312e81 60%, #1e1b4b 100%);
+}
+
+/* 链接悬浮过渡 */
+.md-typeset a { transition: color .15s ease; }
+.md-typeset a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ===== 首页 hero ===== */
+.mdx-hero {
+  margin: 1.2rem 0 2rem;
+  padding: 2.2rem 2rem 2rem;
+  text-align: center;
+  border-radius: 18px;
+  background:
+    radial-gradient(1200px 400px at 15% -10%, rgba(79, 70, 229, .18), transparent 60%),
+    radial-gradient(1000px 380px at 90% 0%, rgba(13, 148, 136, .16), transparent 55%),
+    linear-gradient(180deg, rgba(79, 70, 229, .06), rgba(13, 148, 136, .04));
+  border: 1px solid rgba(79, 70, 229, .14);
+}
+[data-md-color-scheme='slate'] .mdx-hero {
+  border-color: rgba(129, 140, 248, .22);
+  background:
+    radial-gradient(1200px 400px at 15% -10%, rgba(99, 102, 241, .22), transparent 60%),
+    radial-gradient(1000px 380px at 90% 0%, rgba(45, 212, 191, .18), transparent 55%),
+    linear-gradient(180deg, rgba(99, 102, 241, .08), rgba(13, 148, 136, .04));
+}
+.mdx-hero h1 {
+  margin-bottom: .4rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+.mdx-hero .tagline {
+  font-size: 1.06rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 42rem;
+  margin: 0 auto 1.4rem;
+}
+.mdx-hero .grad {
+  background: linear-gradient(90deg, #4f46e5, #0d9488);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mdx-hero .md-button { margin: .3rem; }
+.mdx-hero .md-button--primary {
+  background: linear-gradient(90deg, #4f46e5, #0d9488);
+  border-color: transparent;
+}
+.mdx-hero .md-button--primary:hover {
+  background: linear-gradient(90deg, #4338ca, #0f766e);
+}
+
+/* ===== 分类磁贴网格 ===== */
+.grid.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 1.4rem 0 2rem;
+}
+.grid.cards > ul { display: contents; }
+.grid.cards li {
+  list-style: none;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 14px;
+  padding: 1rem 1.1rem .9rem;
+  background: var(--md-default-bg-color);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.grid.cards li:hover {
+  transform: translateY(-3px);
+  border-color: rgba(79, 70, 229, .45);
+  box-shadow: 0 10px 24px -12px rgba(37, 26, 143, .35);
+}
+.grid.cards li > p:first-child { margin-top: 0; font-weight: 700; }
+.grid.cards li > p { margin-bottom: .3rem; color: var(--md-default-fg-color--light); font-size: .92rem; }
+[data-md-color-scheme='slate'] .grid.cards li:hover { border-color: rgba(129, 140, 248, .55); }
+
+/* 页脚品牌行 */
+.md-footer__inner { padding: .4rem .2rem; }
+
+/* 表格自动换行保护 */
+.md-typeset table:not([class]) td { white-space: normal; }
+
+/* ===== 侧栏宽度与折叠交互 ===== */
+@media (min-width: 76.25em) {
+  .md-sidebar--primary { width: 17.5rem; }              /* 20.5rem - ~50px */
+  .md-sidebar--primary .md-sidebar__inner { padding-right: calc(100% - 17rem); }
+  /* 让侧栏成为独立滚动区：固定视口高 + 内部滚动，不再带跑主内容 */
+  .md-sidebar { height: calc(100vh - 2.4rem); }
+  .md-sidebar__scrollwrap { height: 100%; max-height: 100%; }
+  /* 长目录时侧栏内部可纵向滚动（默认 overflow:hidden 滚不动） */
+  .md-sidebar__scrollwrap {
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;      /* 滚到底即停，不联动页面 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 122, 148, .45) transparent;
+  }
+  .md-sidebar__scrollwrap::-webkit-scrollbar { width: 8px; }
+  .md-sidebar__scrollwrap::-webkit-scrollbar-thumb {
+    background: rgba(120, 122, 148, .4);
+    border-radius: 4px;
+  }
+  .md-sidebar__scrollwrap::-webkit-scrollbar-track { background: transparent; }
+}
+.md-nav__link { line-height: 1.55; }
+/* 收起的子菜单过度更顺滑 */
+.md-nav__toggle ~ .md-nav__list { transition: none; }
