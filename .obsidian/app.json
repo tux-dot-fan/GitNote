@@ -1,16 +1,1 @@
-{
-  "newFileLocation": "current",
-  "newLinkFormat": "relative",
-  "attachmentFolderPath": "./assets",
-  "vimMode": true,
-  "useMarkdownLinks": true,
-  "readableLineLength": false,
-  "showLineNumber": true,
-  "alwaysUpdateLinks": true,
-  "pdfExportSettings": {
-    "pageSize": "Letter",
-    "landscape": false,
-    "margin": "0",
-    "downscalePercent": 100
-  }
-}
+{}

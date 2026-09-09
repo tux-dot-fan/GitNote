@@ -1,0 +1,32 @@
+{%- comment -%}
+list.liquid — 列出当前目录（可选递归 all=true）下的页面链接。
+替代原远程主题提供的同名组件。用法：{% include list.liquid %} / {% include list.liquid all=true %}
+{%- endcomment -%}
+{%- assign cur_dir = page.dir -%}
+{%- assign items = "" | split: "," -%}
+{%- for p in site.pages -%}
+  {%- assign ext = p.ext | downcase -%}
+  {%- if ext != ".md" and ext != ".markdown" and ext != ".html" -%}{%- continue -%}{%- endif -%}
+  {%- if p.url == page.url -%}{%- continue -%}{%- endif -%}
+  {%- assign same = false -%}
+  {%- if include.all == true -%}
+    {%- if p.dir == cur_dir or p.dir contains cur_dir -%}{%- assign same = true -%}{%- endif -%}
+  {%- else -%}
+    {%- if p.dir == cur_dir -%}{%- assign same = true -%}{%- endif -%}
+  {%- endif -%}
+  {%- if same -%}
+    {%- assign items = items | push: p -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if items.size > 0 -%}
+<ul>
+  {%- assign sorted = items | sort: "dir" | sort: "name" -%}
+  {%- for p in sorted -%}
+    {%- assign label = p.title | default: "" -%}
+    {%- if label == "" or label == nil -%}
+      {%- assign label = p.name | split: "." | first -%}
+    {%- endif -%}
+    <li><a href="{{ p.url | relative_url }}">{{ label }}</a></li>
+  {%- endfor -%}
+</ul>
+{%- endif -%}

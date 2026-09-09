@@ -1,0 +1,21 @@
+<nav aria-label="Main" id="site-nav" class="site-nav">
+  {%- if site.data.nav_tree -%}
+    <ul class="nav-list">
+      {%- for node in site.data.nav_tree -%}
+        <li class="nav-list-item">
+          {%- if node.u -%}
+            <a href="{{ node.u | relative_url }}" class="nav-list-link">{{ node.t }}</a>
+          {%- else -%}
+            <div class="nav-category">{{ node.t }}</div>
+          {%- endif -%}
+          {%- if node.c.size > 0 -%}
+            <button class="nav-list-expander btn-reset" aria-label="{{ node.t }}" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>
+            </button>
+            {% include components/nav/tree.html node=node %}
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+</nav>

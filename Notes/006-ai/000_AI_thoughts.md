@@ -1,6 +1,7 @@
 ---
 title: 000. AI 个人思考（稿纸）
 ---
+[TOC]
 
 ## 推理引擎关键问题
 
@@ -146,85 +147,6 @@ mp3_obj init_from_file(char *path) {}
 
 };
 ```
-
-
-## 快捷键
-
-### 桌面级
-
-### 窗口级(wezterm)
-
-```lua
-{ key = 'p', mods = 'CTRL|SHIFT', action = act.ActivateCommandPalette },
-{ key = '?', mods = 'CTRL|SHIFT',action = act.ShowDebugOverlay },
-{ key = 'o', mods = 'CTRL|SHIFT', action = act.ShowLauncher },
-{ key = 'h', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(-1) }, 
-{ key = 'l', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(1)},
-{ key = '{', mods = 'CTRL|SHIFT', action = act.MoveTabRelative(-1) },
-{ key = '}', mods = 'CTRL|SHIFT', action = act.MoveTabRelative(1) },
-{ key = 'LeftArrow',mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(-1) },
-{ key = 'RightArrow',mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(1) },
-{ key = "_", mods = "CTRL|SHIFT", action=wezterm.action.SplitVertical({domain="CurrentPaneDomain"})},
-{ key = "|",mods = "CTRL|SHIFT", action=wezterm.action{SplitHorizontal={domain="CurrentPaneDomain"}}},
-{ key = "n", mods = "CTRL|SHIFT", action=wezterm.action{SpawnTab="CurrentPaneDomain"}},
-{ key = "z", mods = "CTRL|SHIFT", action="TogglePaneZoomState" },
-{ key = "Backspace", mods = "CTRL|SHIFT", action=wezterm.action{CloseCurrentPane={confirm=true}}},
-{ key = "Delete", mods = "CTRL|SHIFT", action=wezterm.action{CloseCurrentPane={confirm=false}}},
-{ key = "LeftArrow", mods = "CTRL", action=wezterm.action{ActivatePaneDirection="Left"}},
-{ key = "DownArrow", mods = "CTRL", action=wezterm.action{ActivatePaneDirection="Down"}},
-{ key = "UpArrow", mods = "CTRL", action=wezterm.action{ActivatePaneDirection="Up"}},
-{ key = "RightArrow", mods = "CTRL", action=wezterm.action{ActivatePaneDirection="Right"}},
-
-```
-
-
-| 快捷键   | 应用      | 功能           | 备注  |
-| ----- | ------- | ------------ | --- |
-| M-a   | wezterm | Leader       |     |
-| C-S-c | wezterm | 复制           |     |
-| C-S-v | wezterm | 粘贴           |     |
-| C-S-k | wezterm | font size -- |     |
-| C-S-j | wezterm | font size ++ |     |
-
-
-
-### shell级
-
-
-| 快捷键     | 应用   | 功能                    | 备注  |
-| ------- | ---- | --------------------- | --- |
-| C-t     | fzf  | fzf查找文件               |     |
-| C-r     | fzf  | fzf查找历史命令             |     |
-| M-c     | fzf  | fzf查找文件夹              |     |
-| M-b/M-f | bash | 前后跳单词                 |     |
-| C-W     | bash | kill word (backward)  |     |
-| Alt-D   | bash | kill word (forward)   |     |
-| C-U     | bash | kill to start of line |     |
-| C-K     | bash | kill to end of line   |     |
-|         |      |                       |     |
-
-
-### 应用级(neovim)
-
-设置原则：
-1. 需要快速打开的，又不容易产生严重后果的，采用少按键的。
-2. 打开后会做很多操作的，或是误触产生严重后果的，采用多按键的。
-
-规则：
-全局用Meta和Meta+Shift控制。
-
-| 快捷键 | 应用     | 功能                          | 备注  |
-| --- | ------ | --------------------------- | --- |
-| M-p | neovim | 工程面板：NerdTree               |     |
-| M-P | neovim | 查找Project：Telescope project |     |
-| M-l | neovim | 符号列表：Tagbar                 |     |
-| M-L | neovim | 搜索符号：Fzflua btags           |     |
-| M-f | neovim | 搜索文件：Telescope find_files   |     |
-| M-F | neovim | 搜索字符串：Telescope live_grep   |     |
-| M-b | neovim | 搜索bufers                    |     |
-| M-h | neovim | 搜索help_tags                 |     |
-| M-g | neovim | 搜索git_files                 |     |
-| M-t | neovim | 打开终端面板: repl                |     |
 
 
 ## Linux command line tools

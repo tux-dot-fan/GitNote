@@ -1,8 +1,9 @@
 # remote_theme: carlosperate/jekyll-theme-rtd
 # remote_theme: rundocs/jekyll-rtd-theme
-remote_theme: Appdynamics/jekyll-rtd-theme
+# remote_theme: zhangfuwen/hichambentaieb.github.io  # 仓库已删除(404)，改用本地主题 just-the-docs
 #remote_theme: chrisbobbe/jekyll-theme-prologue
 #remote_theme: pmarsceill/just-the-docs
+theme: just-the-docs
 
 
 # Welcome to Jekyll!
@@ -50,9 +51,17 @@ remote_theme: Appdynamics/jekyll-rtd-theme
 #   - vendor/ruby/
 defaults:
   - scope:
+      path: ""
+    values:
+      layout: default
+  - scope:
       path: "attachments"
     values:
       attachment: true
+
+exclude:
+  - vendor
+  - "*.ipynb"
 
 gittalk:
   # Note: A GitHub Application is needed for authorization, if you don't have one, going to https://github.com/settings/applications/new register a new one.
@@ -71,3 +80,15 @@ plugins:
   - jekyll-asciidoc
   - jekyll-gist
   - jekyll-jupyter-notebook
+# ---- 渲染增强 ----
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# just-the-docs 内置 Mermaid 支持（```mermaid 代码块渲染为图表）
+mermaid:
+  version: "10.9.1"

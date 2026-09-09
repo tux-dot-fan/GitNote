@@ -1,0 +1,18 @@
+{%- comment -%}递归渲染一层子目录（配合 nav_tree.rb）；li 加 .active 由主题 JS/按钮切换显隐{%- endcomment -%}
+<ul class="nav-list">
+  {%- for c in include.node.c -%}
+    <li class="nav-list-item">
+      {%- if c.u -%}
+        <a href="{{ c.u | relative_url }}" class="nav-list-link">{{ c.t }}</a>
+      {%- else -%}
+        <div class="nav-category">{{ c.t }}</div>
+      {%- endif -%}
+      {%- if c.c.size > 0 -%}
+        <button class="nav-list-expander btn-reset" aria-label="{{ c.t }}" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>
+        </button>
+        {% include components/nav/tree.html node=c %}
+      {%- endif -%}
+    </li>
+  {%- endfor -%}
+</ul>

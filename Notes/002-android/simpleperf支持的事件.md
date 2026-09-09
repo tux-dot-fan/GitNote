@@ -358,6 +358,7 @@
   task-clock
 
 # List of tracepoint events:
+```text
   alarmtimer:alarmtimer_cancel
   alarmtimer:alarmtimer_fired
   alarmtimer:alarmtimer_start
@@ -2222,7 +2223,8 @@
   xhci-hcd:xhci_stop_device
   xhci-hcd:xhci_urb_dequeue
   xhci-hcd:xhci_urb_enqueue
-  xhci-hcd:xhci_urb_giveback
+  xhci-hcd:xhci_urb_giveback```
+
 
 # simpleperf使用示例
 

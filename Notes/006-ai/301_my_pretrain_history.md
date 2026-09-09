@@ -109,3 +109,5 @@ A100:
 |          |             |         |                    |                             |            |                      |                  |      |                |
 |          |             |         |                    |                             |            |                      |                  |      |                |
 forward算力：2.4GFLOPS * 16 * 1024 = 38.4 TFLOPS(约需2s)，如果gradient_accumulation_steps设成8,那就是19s左右。
+
+

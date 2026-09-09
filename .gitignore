@@ -4,3 +4,17 @@ node_modules
 package-lock.json
 cmake-build-debug
 .obsidian
+
+# Jekyll 本地构建产物与依赖（不入库）
+_site/
+vendor/
+.bundle/
+Gemfile.lock
+# MkDocs 本地构建产物与依赖（不入库）
+mkdocs_site/
+.mkdocs-venv/
+
+# wiki-docs/ 内的符号链接需要入库（指向仓库顶层目录，用于复现 MkDocs 站点）
+
+# Jekyll 缓存残留
+.sass-cache/

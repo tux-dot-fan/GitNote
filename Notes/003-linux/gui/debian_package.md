@@ -2,7 +2,7 @@
 
 title: dpkg and apt command
 
-tags:['dpkg', 'debian', 'apt', 'changelog', 'debchange', 'apt-file','apt-rdepends']
+tags: ['dpkg', 'debian', 'apt', 'changelog', 'debchange', 'apt-file','apt-rdepends']
 
 ---
 

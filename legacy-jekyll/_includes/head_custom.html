@@ -1,0 +1,51 @@
+<!-- MathJax: $..$ 行内、$$..$$ 块级 LaTeX（自动跳过代码块） -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<script>
+(function () {
+  function norm(x) {
+    x = x.split('#')[0].replace(/^\//, '');
+    return x.replace(/\.(md|markdown)$/i, '.html');
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var nav = document.getElementById('site-nav');
+    if (!nav) return;
+    // 1) 打开页面时展开当前文件所在的目录链
+    var cur = norm(location.pathname);
+    var found = null;
+    nav.querySelectorAll('a.nav-list-link').forEach(function (a) {
+      if (!found && norm(a.getAttribute('href') || '') === cur) found = a;
+    });
+    var li = found ? found.closest('li.nav-list-item') : null;
+    while (li && nav.contains(li)) {
+      li.classList.add('active');
+      var b = li.querySelector('.nav-list-expander');
+      if (b) b.setAttribute('aria-expanded', 'true');
+      li = li.parentElement.closest('li.nav-list-item');
+    }
+  });
+
+  // 2) 点击目录行 = 展开/收起（不跳转）；箭头由主题 JS 处理，这里跳过避免重复
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.nav-list-expander')) return;      // 交给主题 JS
+    var li = e.target.closest('li.nav-list-item');
+    if (!li || !navScope()) return;
+    var children = li.querySelector(':scope > ul.nav-list');
+    if (!children) return;                                    // 叶子笔记：正常跳转
+    if (e.target.closest('a.nav-list-link')) e.preventDefault();
+    li.classList.toggle('active');
+    var b = li.querySelector(':scope > .nav-list-expander');
+    if (b) b.setAttribute('aria-expanded', li.classList.contains('active'));
+  });
+  function navScope() { return !!document.getElementById('site-nav'); }
+})();
+</script>

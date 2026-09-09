@@ -1,3 +1,9 @@
+---
+layout: default
+title: 首页
+nav_order: 1
+---
+
 index page:
 see [Summary](SUMMARY.md)
 
@@ -28,7 +34,7 @@ see [Summary](SUMMARY.md)
   * [015\. 7代x86处理器Pentium 4](Notes/001-modern-computing/015-7dai-x86-chu-li-qi-pentium-4.md)
   * [016\. 8代x86微架构Intel Core](Notes/001-modern-computing/016-8dai-ma-x86-wei-jia-gou-intel-core.md)
   * [017\. 显卡的发展历史回顾\-\-之一](Notes/001-modern-computing/017-display-card.md)
-  * [018\. 显卡的发展历史回顾\-\-之二](Notes/001-modern-computing/018-playing-width-cga.md)
+  * [018\. 显卡的发展历史回顾\-\-之二](Notes/001-modern-computing/018-playing-with-cga.md)
   * [020\. 显卡到AI芯片\-\-之一](Notes/001-modern-computing/020-modern-gpu.md)
   * [021\. 显卡到AI芯片\-\-之二](Notes/001-modern-computing/021-modern-gpu2.md)
   * [022\. 显卡到AI芯片\-\-之三](Notes/001-modern-computing/022-modern-gpu-3.md)
@@ -59,17 +65,17 @@ see [Summary](SUMMARY.md)
 
 ### kernel
 
-* [Introduction](./Notes/003-linux/README.md)
+* [Introduction](./Notes/003-linux/index.md)
 * [内核模块与驱动程序](./Notes/003-linux/driver/001-kernel_module_versus_device_driver.md)
 * [打印等级](./Notes/003-linux/driver/002-print_level.md)
 * [描述性宏定义](./Notes/003-linux/driver/003-descriptive_macros.md)
 * [字符设备驱动](./Notes/003-linux/driver/004-char_dev.md)
 * [设备号](./Notes/003-linux/driver/005-dev_no.md)
 * [file\_operations结构体](./Notes/003-linux/driver/006-file_operations.md)
-* [Notes/linux驱动中使 work queue处理中断](./Notes/003-linux/driver/007-Notes/linux-work-queue.md)
+* [Notes/linux驱动中使 work queue处理中断](./Notes/003-linux/driver/007-linux-work-queue.md)
 * [Linux物理内存](./Notes/003-linux/driver/008-physical-memory.md)
 * [Linux hardware info](./Notes/003-linux/driver/009-linux-hardware-info.md)
-* [Notes/linux物理内存](./Notes/003-linux/README.md)
+* [Notes/linux物理内存](./Notes/003-linux/index.md)
 
 ### gui [图形界面](./Notes/003-linux/gui/index.md)
 
